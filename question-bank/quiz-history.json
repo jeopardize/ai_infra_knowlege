@@ -1,16 +1,1 @@
-[
-  {
-    "at": 1791277372000,
-    "source": "bank",
-    "question": "部署验证题",
-    "answer": "测试答案",
-    "evaluation": {
-      "score": 99,
-      "correct_points": [],
-      "gaps": [],
-      "misconceptions": [],
-      "reference_answer": "",
-      "follow_up": ""
-    }
-  }
-]
+[]
