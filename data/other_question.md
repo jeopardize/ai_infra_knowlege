@@ -1,6 +1,6 @@
 
 
-<!--Q id=q-1780884692048-amnn ts=1791274056380 topic=kv-cache-->
+<!--Q id=q-1780884692048-amnn ts=1791275997195 topic=kv-cache-->
 
 **问题 (zh)**
 
@@ -19,7 +19,7 @@ what is KV Cache
 
 
 <!--/Q-->
-<!--Q id=q-1780884756742-pal8 ts=1791274056373 topic=kv-cache-->
+<!--Q id=q-1780884756742-pal8 ts=1791275997176 topic=kv-cache-->
 
 **问题 (zh)**
 
@@ -44,7 +44,7 @@ In large model inference, the "KV cache" is a core mechanism for reducing comput
 
 
 <!--/Q-->
-<!--Q id=q-1780887362088-eomt ts=1791274056367 topic=speculative-decoding-->
+<!--Q id=q-1780887362088-eomt ts=1791275997142 topic=speculative-decoding-->
 
 **问题 (zh)**
 
@@ -63,7 +63,7 @@ Speedup analysis formula for speculative sampling, performance issues encountere
 
 
 <!--/Q-->
-<!--Q id=q-1780887385961-ocf5 ts=1791274056361 topic=speculative-decoding-->
+<!--Q id=q-1780887385961-ocf5 ts=1791275997107 topic=speculative-decoding-->
 
 **问题 (zh)**
 
@@ -82,7 +82,7 @@ The differences between MTP and Eagle, the MTP head prefill process, and changes
 
 
 <!--/Q-->
-<!--Q id=q-1780887452904-6g91 ts=1791274056355 topic=nccl-collectives-->
+<!--Q id=q-1780887452904-6g91 ts=1791275997080 topic=nccl-collectives-->
 
 **问题 (zh)**
 
@@ -101,7 +101,7 @@ How much will communication time be reduced when switching from FSDP to HSDP for
 
 
 <!--/Q-->
-<!--Q id=q-1780887465931-iuox ts=1791274056349 topic=nccl-collectives-->
+<!--Q id=q-1780887465931-iuox ts=1791275997067 topic=nccl-collectives-->
 
 **问题 (zh)**
 
@@ -120,7 +120,7 @@ What are the communication primitives in nccl? How many communications are requi
 
 
 <!--/Q-->
-<!--Q id=q-1780887481850-855v ts=1791274056343-->
+<!--Q id=q-1780887481850-855v ts=1791275997055-->
 
 **问题 (zh)**
 
@@ -139,7 +139,7 @@ In AI training scenarios, distributed training often faces communication bottlen
 
 
 <!--/Q-->
-<!--Q id=q-1780887493942-wj9n ts=1791274056337-->
+<!--Q id=q-1780887493942-wj9n ts=1791275997045-->
 
 **问题 (zh)**
 
@@ -158,7 +158,7 @@ Differences between NVSHMEM and NVLink in multi-GPU communication
 
 
 <!--/Q-->
-<!--Q id=q-1780887508039-jduf ts=1791274056332-->
+<!--Q id=q-1780887508039-jduf ts=1791275997031-->
 
 **问题 (zh)**
 
@@ -177,7 +177,7 @@ How to optimize communication in megatron-lm?
 
 
 <!--/Q-->
-<!--Q id=q-1780887539797-obgm ts=1791274056327-->
+<!--Q id=q-1780887539797-obgm ts=1791275997020-->
 
 **问题 (zh)**
 
@@ -196,7 +196,7 @@ In scenarios with small data volumes, NVSHMEM allows each GPU to directly read d
 
 
 <!--/Q-->
-<!--Q id=q-1780887657078-05hz ts=1791274056320-->
+<!--Q id=q-1780887657078-05hz ts=1791275997009-->
 
 **问题 (zh)**
 
@@ -215,7 +215,7 @@ How should the transpose kernel of a multidimensional tensor be designed? Should
 
 
 <!--/Q-->
-<!--Q id=q-1780887810461-n831 ts=1791274056314-->
+<!--Q id=q-1780887810461-n831 ts=1791275997000-->
 
 **问题 (zh)**
 
@@ -234,7 +234,7 @@ The benefits of using shared memory in GPU matrix transpose
 
 
 <!--/Q-->
-<!--Q id=q-1780887823673-gmov ts=1791274056295-->
+<!--Q id=q-1780887823673-gmov ts=1791275996990-->
 
 **问题 (zh)**
 
@@ -253,7 +253,7 @@ Operator optimization in AI frameworks (such as TensorFlow/PyTorch) is one of th
 
 
 <!--/Q-->
-<!--Q id=q-1780887848307-g9a5 ts=1791274056290-->
+<!--Q id=q-1780887848307-g9a5 ts=1791275996980-->
 
 **问题 (zh)**
 
@@ -272,7 +272,7 @@ What should be noted when accessing global memory and shared memory in CUDA?
 
 
 <!--/Q-->
-<!--Q id=q-1780887893929-yl18 ts=1791274056284-->
+<!--Q id=q-1780887893929-yl18 ts=1791275996971-->
 
 **问题 (zh)**
 
@@ -291,7 +291,7 @@ If you were to adapt the Ampere architecture operators to the Hopper architectur
 
 
 <!--/Q-->
-<!--Q id=q-1780887910836-q533 ts=1791274056278-->
+<!--Q id=q-1780887910836-q533 ts=1791275996963-->
 
 **问题 (zh)**
 
@@ -310,7 +310,7 @@ In AI Infrastructure hardware adaptation, the instruction set differences of dif
 
 
 <!--/Q-->
-<!--Q id=q-1780887925934-gaq3 ts=1791274056273-->
+<!--Q id=q-1780887925934-gaq3 ts=1791275996952-->
 
 **问题 (zh)**
 
@@ -329,7 +329,7 @@ Please explain the core workflow of "AI compilation optimization" (such as TVM, 
 
 
 <!--/Q-->
-<!--Q id=q-1780887987263-jrdf ts=1791274056267-->
+<!--Q id=q-1780887987263-jrdf ts=1791275996921-->
 
 **问题 (zh)**
 
@@ -348,7 +348,7 @@ Quantization is a key technology for accelerating AI model inference, with commo
 
 
 <!--/Q-->
-<!--Q id=kb-kv-basic ts=1791274056262 topic=kv-cache-->
+<!--Q id=kb-kv-basic ts=1791275996910 topic=kv-cache-->
 
 **问题 (zh)**
 
@@ -377,7 +377,7 @@ With caching, every step only computes the new token's K/V and concatenates with
 The trade-off is memory: cache size = `2 (K+V) × num_layers × num_heads × head_dim × seq_len × batch × bytes`. For LLaMA-7B at length 2048 with batch 1, that's about **1 GB**.
 
 <!--/Q-->
-<!--Q id=q-1780901766052-zma3 ts=1791274056256-->
+<!--Q id=q-1780901766052-zma3 ts=1791275996900-->
 
 **问题 (zh)**
 
@@ -397,7 +397,7 @@ FlashAttention 的核心不是“更快算 attention”，而是“避免把完�
 
 
 <!--/Q-->
-<!--Q id=q-1780901854289-aj92 ts=1791274056248-->
+<!--Q id=q-1780901854289-aj92 ts=1791275996887-->
 
 **问题 (zh)**
 
@@ -416,7 +416,7 @@ RMSNorm 去掉了均值中心化，只保留方差归一化，计算更简单，
 
 
 <!--/Q-->
-<!--Q id=q-1780925589053-k2g4 ts=1791274056243 topic=model-serving-->
+<!--Q id=q-1780925589053-k2g4 ts=1791275996877 topic=model-serving-->
 
 **问题 (zh)**
 
@@ -435,7 +435,7 @@ If an OOM (Out of Memory) error occurs during reasoning, how would you troublesh
 
 
 <!--/Q-->
-<!--Q id=kb-prefix-cache ts=1791274056236 topic=kv-cache-->
+<!--Q id=kb-prefix-cache ts=1791275996867 topic=kv-cache-->
 
 **问题 (zh)**
 

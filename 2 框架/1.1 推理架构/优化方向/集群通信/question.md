@@ -1,6 +1,6 @@
 
 
-<!--Q id=q-1788674761656-ukvf ts=1791274056224-->
+<!--Q id=q-1788674761656-ukvf ts=1791275996845-->
 
 **问题 (zh)**
 
@@ -19,7 +19,7 @@ Communications | Under what circumstances is PD separation not cost-effective? (
 
 
 <!--/Q-->
-<!--Q id=q-1788674761657-eiha ts=1791274056217-->
+<!--Q id=q-1788674761657-eiha ts=1791275996836-->
 
 **问题 (zh)**
 
@@ -38,7 +38,7 @@ Communications | Under what circumstances is PD separation not cost-effective? (
 
 
 <!--/Q-->
-<!--Q id=q-1788674761657-da2k ts=1791274056209-->
+<!--Q id=q-1788674761657-da2k ts=1791275996813-->
 
 **问题 (zh)**
 
@@ -57,7 +57,7 @@ Communication | What are the principles and limitations of GPUDirect RDMA?
 
 
 <!--/Q-->
-<!--Q id=q-1788674761657-cnsi ts=1791274056202-->
+<!--Q id=q-1788674761657-cnsi ts=1791275996803-->
 
 **问题 (zh)**
 
@@ -76,7 +76,7 @@ Communications | How can we hide KV transmission latency? Name at least one meth
 
 
 <!--/Q-->
-<!--Q id=q-1788674761658-ycjt ts=1791274056195-->
+<!--Q id=q-1788674761658-ycjt ts=1791275996779-->
 
 **问题 (zh)**
 
@@ -95,7 +95,7 @@ Communications | How can we hide KV transmission latency? Name at least one meth
 
 
 <!--/Q-->
-<!--Q id=q-1788674761658-t3um ts=1791274056188-->
+<!--Q id=q-1788674761658-t3um ts=1791275996758-->
 
 **问题 (zh)**
 
@@ -114,7 +114,7 @@ Communications | What is the difference in communication volume and frequency be
 
 
 <!--/Q-->
-<!--Q id=q-1788674761658-kzt9 ts=1791274056181-->
+<!--Q id=q-1788674761658-kzt9 ts=1791275996738-->
 
 **问题 (zh)**
 
@@ -133,7 +133,7 @@ Communication | If a decode node crashes during transmission, how should the req
 
 
 <!--/Q-->
-<!--Q id=q-1788674761659-72wg ts=1791274056174-->
+<!--Q id=q-1788674761659-72wg ts=1791275996695-->
 
 **问题 (zh)**
 
@@ -152,7 +152,7 @@ Communication | Where should the global KV index be placed? Would you choose rou
 
 
 <!--/Q-->
-<!--Q id=q-1788674761659-87uf ts=1791274056167-->
+<!--Q id=q-1788674761659-87uf ts=1791275996637-->
 
 **问题 (zh)**
 
