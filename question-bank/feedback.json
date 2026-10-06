@@ -6,5 +6,11 @@
     "status": "done",
     "processedAt": 1791261280179,
     "note": "给笔记库页面刷新按钮增加快捷键提示（Ctrl/Cmd+R）并绑定键盘事件"
+  },
+  {
+    "id": "fb_1791276363463_7atwpu",
+    "content": "总览这个题目应该同步修改为每日题目",
+    "createdAt": 1791276363463,
+    "status": "open"
   }
 ]
