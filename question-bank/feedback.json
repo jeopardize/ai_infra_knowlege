@@ -3,6 +3,8 @@
     "id": "fb_1791260503471_2tyta3",
     "content": "测试反馈：请给笔记库页面增加刷新按钮的快捷键提示",
     "createdAt": 1791260503472,
-    "status": "open"
+    "status": "done",
+    "processedAt": 1791261280179,
+    "note": "给笔记库页面刷新按钮增加快捷键提示（Ctrl/Cmd+R）并绑定键盘事件"
   }
 ]
