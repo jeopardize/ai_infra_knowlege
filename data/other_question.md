@@ -304,35 +304,6 @@ Quantization is a key technology for accelerating AI model inference, with commo
 
 
 <!--/Q-->
-<!--Q id=kb-kv-basic ts=1791275996910 topic=kv-cache-->
-
-**问题 (zh)**
-
-KV cache 大小怎么算？
-
-**问题 (en)**
-
-How do you calculate KV cache size?
-
-**答案 (zh)**
-
-自回归生成时，每生成一个新 token，attention 需要它对**之前所有 token** 的 Q·K^T。
-
-如果不缓存，每步都要重算前面所有 token 的 K/V → 复杂度 `O(L^2)` 每步、`O(L^3)` 总；
-缓存后每步只需算新 token 的 K/V 并和缓存拼接 → `O(L)` 每步、`O(L^2)` 总。
-
-代价是显存：cache 大小 = `2 (K+V) × num_layers × num_heads × head_dim × seq_len × batch × bytes`。LLaMA-7B 在 2048 长度下单 batch 约 **1GB**。
-
-**答案 (en)**
-
-In autoregressive generation, every new token's attention needs to compute Q·Kᵀ against **all previous tokens**.
-
-Without caching, every step re-derives K/V for every prior token → `O(L²)` per step, `O(L³)` total.
-With caching, every step only computes the new token's K/V and concatenates with the cache → `O(L)` per step, `O(L²)` total.
-
-The trade-off is memory: cache size = `2 (K+V) × num_layers × num_heads × head_dim × seq_len × batch × bytes`. For LLaMA-7B at length 2048 with batch 1, that's about **1 GB**.
-
-<!--/Q-->
 <!--Q id=q-1780901766052-zma3 ts=1791275996900-->
 
 **问题 (zh)**
