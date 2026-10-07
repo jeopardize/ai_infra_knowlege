@@ -19,25 +19,6 @@ The differences between MTP and Eagle, the MTP head prefill process, and changes
 
 
 <!--/Q-->
-<!--Q id=q-1780887452904-6g91 ts=1791275997080 topic=nccl-collectives-->
-
-**问题 (zh)**
-
-4机32卡H200训练从FSDP换成HSDP，通信时间会减少多少
-
-**问题 (en)**
-
-How much will communication time be reduced when switching from FSDP to HSDP for 4-machine, 32-card H200 training?
-
-**答案 (zh)**
-
-
-
-**答案 (en)**
-
-
-
-<!--/Q-->
 <!--Q id=q-1780887465931-iuox ts=1791275997067 topic=nccl-collectives-->
 
 **问题 (zh)**
