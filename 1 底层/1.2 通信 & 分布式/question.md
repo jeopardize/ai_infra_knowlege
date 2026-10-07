@@ -1,5 +1,24 @@
 
 
+<!--Q id=q-1780887452904-6g91 ts=1791361825596 topic=nccl-collectives-->
+
+**问题 (zh)**
+
+4机32卡H200训练从FSDP换成HSDP，通信时间会减少多少
+
+**问题 (en)**
+
+How much will communication time be reduced when switching from FSDP to HSDP for 4-machine, 32-card H200 training?
+
+**答案 (zh)**
+
+
+
+**答案 (en)**
+
+
+
+<!--/Q-->
 <!--Q id=q-1791361294217-sl0prx ts=1791361765577-->
 
 **问题 (zh)**
