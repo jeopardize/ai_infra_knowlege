@@ -1,6 +1,6 @@
 
 
-<!--Q id=q-1788674761656-ukvf ts=1791275996845-->
+<!--Q id=q-1788674761656-ukvf ts=1791339314496-->
 
 **问题 (zh)**
 
@@ -12,7 +12,9 @@ Communications | Under what circumstances is PD separation not cost-effective? (
 
 **答案 (zh)**
 
-
+短 prompt 场景：prefill 计算量本身很小，干扰可以忽略，而跨实例/跨节点传输 KV 的固定开销（PCIe/IB 延迟、拷贝开销）占比极高，得不偿失。
+小 batch 场景：单卡上 prefill 和 decode 的冲突本身就少，分离带来的收益微弱。
+prefill 占比极低的场景：比如纯对话类长 decode 负载，prefill 只在开头出现一次，分离的边际收益很小。
 
 **答案 (en)**
 
