@@ -1,5 +1,24 @@
 
 
+<!--Q id=q-1780887508039-jduf ts=1791362716665-->
+
+**问题 (zh)**
+
+megatron-lm中通信优化怎么做？
+
+**问题 (en)**
+
+How to optimize communication in megatron-lm?
+
+**答案 (zh)**
+
+
+
+**答案 (en)**
+
+
+
+<!--/Q-->
 <!--Q id=q-1788674761656-ukvf ts=1791339314496-->
 
 **问题 (zh)**
