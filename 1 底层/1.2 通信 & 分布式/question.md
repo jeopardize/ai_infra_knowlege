@@ -1,5 +1,24 @@
 
 
+<!--Q id=q-1780887465931-iuox ts=1791362046763 topic=nccl-collectives-->
+
+**问题 (zh)**
+
+nccl中的通信源语有哪些？all-reduce参数更新一次参数需要几次通信？
+
+**问题 (en)**
+
+What are the communication primitives in nccl? How many communications are required for an all-reduce parameter update?
+
+**答案 (zh)**
+
+
+
+**答案 (en)**
+
+
+
+<!--/Q-->
 <!--Q id=q-1780887493942-wj9n ts=1791361846451-->
 
 **问题 (zh)**
