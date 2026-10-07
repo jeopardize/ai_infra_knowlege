@@ -1,5 +1,34 @@
 [
   {
+    "questionId": "kb-kv-basic",
+    "topicId": "kv-cache",
+    "category": "1.0 KV Cache",
+    "source": "bank",
+    "question": "KV cache 大小怎么算？",
+    "answer": "2 * (head_dim * hidden_size * layers)",
+    "evaluation": {
+      "score": 20,
+      "correct_points": [
+        "提到了 KV cache 包含 K 和 V 两个部分（对应公式中的系数 2）",
+        "提到了层数（layers）和隐层维度相关的参数（head_dim * hidden_size 近似对应 num_heads * head_dim 即 hidden_size）"
+      ],
+      "gaps": [
+        "缺少序列长度 seq_len 维度，KV cache 大小和缓存的 token 数成正比",
+        "缺少 batch size 维度，多 batch 场景下 cache 会按 batch 放大",
+        "缺少每个元素的字节数（bytes，比如 FP16 是 2 字节、BF16 是 2 字节、FP8 是 1 字节），没有单位无法得到实际显存大小",
+        "没有说明 KV cache 的作用和为什么需要计算它的大小（缓存历史 K/V 避免重复计算）",
+        "没有给出实际的数值估算例子（比如 LLaMA-7B 在 2048 长度下的量级）"
+      ],
+      "misconceptions": [
+        "公式中的 head_dim * hidden_size 表述不准确，正确的应该是 num_heads * head_dim（即 hidden_size），学习者的写法容易混淆参数含义",
+        "把 KV cache 大小当成了固定值，没有意识到它是随序列长度动态增长的"
+      ],
+      "reference_answer": "### KV cache 大小计算公式\n缓存大小 = `2 × num_layers × num_heads × head_dim × seq_len × batch_size × bytes_per_element`\n\n### 各维度含义\n- **系数 2**：K 和 V 两个张量都要缓存\n- **num_layers**：Transformer 层数，每层都有独立的 KV cache\n- **num_heads × head_dim**：等于 hidden_size，是每个 token 的 K/V 向量维度\n- **seq_len**：已缓存的序列长度（KV cache 随生成 token 数线性增长）\n- **batch_size**：批大小，每个样本有独立的 cache\n- **bytes_per_element**：精度相关，FP16/BF16 为 2 字节，FP8/INT8 为 1 字节\n\n### 典型量级\nLLaMA-7B（32层、32头、128 head_dim、FP16）在 2048 序列长度、单 batch 下，KV cache 约为 **1GB**。",
+      "follow_up": "如果把 MHA 改成 GQA（分组查询注意力，比如 32 个 Q 头对应 8 个 K/V 头），同样的模型和序列长度下，KV cache 大小会变成原来的几分之几？"
+    },
+    "at": 1791337377366
+  },
+  {
     "questionId": "q-1788674761659-87uf",
     "category": "集群通信",
     "source": "bank",
