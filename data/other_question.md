@@ -57,25 +57,6 @@ In AI training scenarios, distributed training often faces communication bottlen
 
 
 <!--/Q-->
-<!--Q id=q-1780887493942-wj9n ts=1791275997045-->
-
-**问题 (zh)**
-
-多GPU通信时NVSHMEM和NVLink的区别
-
-**问题 (en)**
-
-Differences between NVSHMEM and NVLink in multi-GPU communication
-
-**答案 (zh)**
-
-
-
-**答案 (en)**
-
-
-
-<!--/Q-->
 <!--Q id=q-1780887508039-jduf ts=1791275997031-->
 
 **问题 (zh)**
