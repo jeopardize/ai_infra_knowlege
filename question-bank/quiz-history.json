@@ -1,5 +1,34 @@
 [
   {
+    "questionId": "q-1788674761657-da2k",
+    "category": "集群通信",
+    "source": "bank",
+    "question": "通信｜GPUDirect RDMA 的原理和限制条件是什么？",
+    "answer": "RDMA是一个概念，remote direct manager access，他有两种实现方式roce/ ib， 这个协议本质上为了解决两台机器之间的绕过cpu可以直接访问对端内存的这件事，限制条件就是需要单独的传输线路，",
+    "evaluation": {
+      "score": 25,
+      "correct_points": [
+        "提到了 RDMA 的核心目标是绕过 CPU 实现远程内存访问",
+        "知道 RDMA 有 RoCE 和 InfiniBand 两种常见实现"
+      ],
+      "gaps": [
+        "没有区分普通 RDMA 和 GPUDirect RDMA（GDR）的差异，题目问的是 GPUDirect RDMA",
+        "没有解释 GPUDirect RDMA 的核心原理：GPU 显存可直接被远端 GPU/设备通过 RDMA 访问，无需经过本机 CPU 和系统内存拷贝",
+        "没有说明 GPUDirect RDMA 相比普通 RDMA 的优势（减少一次 CPU 内存到 GPU 显存的拷贝，降低延迟和 CPU 开销）",
+        "限制条件回答过于笼统，缺少具体的硬件/软件要求，如需要支持 GPUDirect RDMA 的网卡（如 Mellanox ConnectX 系列）、需要 NVIDIA GPU 支持、需要驱动和网络配置支持、需要 GPU 显存地址被正确映射给 RDMA 设备 等",
+        "没有提及拓扑限制（如 GPU 和网卡需在同一 PCIe 根复合体下，或需支持 GPU Direct RDMA over PCIe peer-to-peer 的配置）"
+      ],
+      "misconceptions": [
+        "RDMA 的全称拼写错误：不是 remote direct manager access，正确是 Remote Direct Memory Access",
+        "将 RDMA 的实现等同于 GPUDirect RDMA，混淆了通用 RDMA 技术和 NVIDIA 针对 GPU 的 GPUDirect RDMA 技术",
+        "“需要单独的传输线路”表述不准确，RoCE 可以在普通以太网上运行，不需要专门的单独线路；InfiniBand 才需要专用的 IB 网络"
+      ],
+      "reference_answer": "## GPUDirect RDMA 原理\nGPUDirect RDMA（GDR）是 NVIDIA 提出的技术，允许**远端设备（通常是另一台机器的 GPU 或 RDMA 网卡）直接访问本机 GPU 的显存**，整个数据传输过程**完全绕过 CPU 和系统内存**。\n\n### 和普通 RDMA 的区别\n- 普通 RDMA：网卡直接读写远端机器的**系统内存**，绕开远端 CPU。\n- GPUDirect RDMA：网卡直接读写远端机器的 **GPU 显存**，不仅绕开 CPU，还省去了「系统内存 ↔ GPU 显存」的额外拷贝（减少一次 memcpy），显著降低多机通信延迟和 CPU 开销，是分布式训练中多机高性能通信的关键技术之一。\n\n### 核心本质\n通过将 GPU 显存的物理地址映射给 RDMA 网卡，让网卡可以直接发起针对 GPU 显存的 DMA 读写，数据路径为：\n`远端 GPU ↔ 远端 RDMA 网卡 ↔ 网络 ↔ 本地 RDMA 网卡 ↔ 本地 GPU 显存`\n全程不经过 CPU 和主机内存。\n\n---\n\n## 限制条件\n1. **硬件要求**\n   - 必须是支持 GPUDirect RDMA 的 NVIDIA GPU（如 Tesla、Ampere、Hopper 等数据中心级 GPU，消费级 GPU 通常不支持）。\n   - 必须是支持 GPUDirect RDMA 的 RDMA 网卡（如 Mellanox ConnectX-5 及以上系列）。\n   - GPU 和网卡通常需在**同一个 PCIe 根复合体（Root Complex）**下，或支持 PCIe peer-to-peer 访问（拓扑不满足时性能会下降甚至不可用）。\n2. **软件要求**\n   - 需要安装支持 GDR 的 NVIDIA 驱动和 MLNX_OFED 驱动。\n   - 需加载 `nvidia_peermem` 内核模块，用于完成 GPU 显存地址和 RDMA 网卡的地址映射。\n3. **网络要求**\n   - 底层网络需支持 RDMA（InfiniBand 或 RoCE v2 均可，RoCE 可在普通以太网上运行，无需专门的单独线路）。\n4. **使用限制**\n   - 通常只支持**物理连续**或经过正确注册的 GPU 显存区域，使用前需要通过驱动接口进行内存注册（memory registration）。\n   - 部分虚拟化环境下可能不支持或性能受限。",
+      "follow_up": "在多机大模型训练中，启用 GPUDirect RDMA 相比不启用，理论上能减少几次数据拷贝？请描述数据路径的变化，并说明为什么它对 all-reduce 等集合通信性能提升明显？"
+    },
+    "at": 1791361317662
+  },
+  {
     "questionId": "q-1788674761657-eiha",
     "category": "集群通信",
     "source": "bank",
