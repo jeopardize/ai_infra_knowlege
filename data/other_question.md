@@ -133,25 +133,6 @@ Operator optimization in AI frameworks (such as TensorFlow/PyTorch) is one of th
 
 
 <!--/Q-->
-<!--Q id=q-1780887848307-g9a5 ts=1791275996980-->
-
-**问题 (zh)**
-
-cuda的global memory和shared memory访存分别需要注意什么？
-
-**问题 (en)**
-
-What should be noted when accessing global memory and shared memory in CUDA?
-
-**答案 (zh)**
-
-
-
-**答案 (en)**
-
-
-
-<!--/Q-->
 <!--Q id=q-1780887893929-yl18 ts=1791275996971-->
 
 **问题 (zh)**
