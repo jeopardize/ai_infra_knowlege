@@ -1,5 +1,30 @@
 [
   {
+    "questionId": "q-1788674761656-ukvf",
+    "category": "集群通信",
+    "source": "bank",
+    "question": "通信｜什么情况下 PD 分离不划算？（提示：短 prompt，传输固定开销 > 干扰收益。答出\"最快的 KV 传输是你永远不必做的那次\"会很加分）",
+    "answer": "pd 分离主要是需要解决 prefill 和 decode直接互相干扰的问题，prefill 单轮需要很长的时间，但是decode 是多轮，但是需要很短的时间，不同框架针对pd调度的策略也不一致，例如vllm-nano是一轮全部进行处理prefill， 下一轮处理decode，这样就会导致长输入的请求会导致其余短输入请求的tpot过高，那么此时就很适合pd 分离，反之他就不适合，其次，pd 分离需要 进行pd 之间传输，目前优化策略是通过下一层的计算去掩盖上一层kv 传输的时延，如果是短prompt的话，就完全无法掩盖，此时就完全没有必要",
+    "evaluation": {
+      "score": 72,
+      "correct_points": [
+        "正确指出了 PD 分离的核心出发点：解决 prefill 和 decode 阶段互相干扰的问题（prefill 耗时长、decode 对延迟敏感）",
+        "正确提到了短 prompt 场景下 PD 分离不划算，因为传输时延无法被计算掩盖",
+        "正确举例了 vLLM-nano 类的整批 prefill 策略会导致短请求 TPOT 升高，是适合 PD 分离的反例"
+      ],
+      "gaps": [
+        "没有明确点出“固定传输开销 > 干扰收益”是 PD 分离不划算的核心判断依据",
+        "没有提到“最快的 KV 传输是你永远不必做的那次”这一关键加分点",
+        "没有列举其他不划算的场景，比如 batch 很小、prefill 本身占比极低的情况",
+        "没有从量化角度提及成本对比：干扰带来的延迟损失 vs KV 传输带来的额外开销"
+      ],
+      "misconceptions": [],
+      "reference_answer": "## PD 分离不划算的核心判断\n当 **KV 传输的固定开销 > 减少 prefill/decode 干扰带来的收益** 时，PD 分离不划算。\n\n## 典型不划算场景\n1. **短 prompt 场景**：prefill 计算量本身很小，干扰可以忽略，而跨实例/跨节点传输 KV 的固定开销（PCIe/IB 延迟、拷贝开销）占比极高，得不偿失。\n2. **小 batch 场景**：单卡上 prefill 和 decode 的冲突本身就少，分离带来的收益微弱。\n3. **prefill 占比极低的场景**：比如纯对话类长 decode 负载，prefill 只在开头出现一次，分离的边际收益很小。\n\n## 加分金句\n> **最快的 KV 传输是你永远不必做的那次。**\n>\n> PD 分离本质是用“额外的 KV 传输成本”换“更少的调度干扰”，如果能通过调度优化（如更细粒度的 prefill 切片、动态 batch）在单实例内解决干扰，就没必要做 PD 分离。",
+      "follow_up": "如果业务场景是「大量短 prompt + 短生成」的问答类负载，你会优先用什么优化手段来降低 TPOT，而不是上 PD 分离？"
+    },
+    "at": 1791339154767
+  },
+  {
     "questionId": "q-1780884692048-amnn",
     "topicId": "kv-cache",
     "category": "1.0 KV Cache",
