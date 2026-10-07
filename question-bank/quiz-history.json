@@ -1,5 +1,33 @@
 [
   {
+    "questionId": "q-1788674761657-eiha",
+    "category": "集群通信",
+    "source": "bank",
+    "question": "通信｜为什么 NCCL 不适合做 KV 传输？至少说三点。",
+    "answer": "NCCL是nvidia collective multi-gpu communication library一个软件库，他提供all gather这些予以方法方法，但是他本质不是提供通讯协议。kv 传输会分为，同机传输，跨机传输，走的协议是不同的，同机传输是走pcle，而跨机传输，最简单是tcp，但是他很慢，所以会走rdma协议，他有两种实现方式，一种是Roce，而且一般跨机之间如果要走roce协议的话，机器上需要roce的端口，其次是IB（infiniteBand），他很贵但是性能好",
+    "evaluation": {
+      "score": 15,
+      "correct_points": [
+        "知道 NCCL 是 NVIDIA 的多卡通信库，提供 all-gather 等集合通信原语",
+        "提到了多机跨节点通信可以走 RDMA（RoCE、IB）协议"
+      ],
+      "gaps": [
+        "完全没有回答『为什么 NCCL 不适合做 KV 传输』这个核心问题",
+        "没有区分 NCCL 的集合通信语义和 KV 传输的点对点/随机访问需求差异",
+        "没有提到 KV cache 传输的典型场景（如推理的 disaggregated KV cache、paged KV 传输）",
+        "没有从通信模式、延迟、内存管理等角度分析不适用的原因",
+        "没有提及 NCCL 面向训练的批量、规则通信特点，与推理 KV 传输的细粒度、不规则特点的对比"
+      ],
+      "misconceptions": [
+        "把 NCCL 和底层传输协议（PCIe/TCP/RDMA）对立起来，实际上 NCCL 本身就支持 PCIe、NVLink、IB、RoCE 等多种底层传输介质，这不是 NCCL 不适合做 KV 传输的原因",
+        "回答偏离题面，在讲跨机通信协议的分类，而没有回应 NCCL 与 KV 传输的匹配性问题"
+      ],
+      "reference_answer": "## 为什么 NCCL 不适合做 KV 传输？\n\nNCCL 是为**训练场景的批量集合通信**设计的，而 KV cache 传输（常见于推理的 disaggregated KV、多卡 KV 交换）有完全不同的特征，主要不匹配点有三点：\n\n### 1. 通信语义不匹配\nNCCL 提供的是 all-reduce / all-gather / reduce-scatter 等**集体通信（collective）**原语，要求所有进程步调一致、数据布局规则。\n而 KV 传输通常是**点对点（P2P）的不规则访问**：某个 GPU 可能只需要另一个 GPU 上某几个 page 的 KV，不需要全体参与的集合操作，用 NCCL 会浪费带宽和同步开销。\n\n### 2. 延迟与调度开销大\nNCCL 为了高吞吐做了很多优化（如 ring/tree 算法、流控、调度），启动开销（launch overhead）相对高，适合**大粒度、批量**的数据传输。\n而 KV 传输（尤其是推理场景）往往是**小粒度、高频率**的（比如每个 step 传几个 block 的 KV），NCCL 的固定开销占比会很高，反而不如直接用 GPU 直连（NVLink P2P、PCIe P2P）或 RDMA verbs 高效。\n\n### 3. 内存模型不匹配\nNCCL 假设通信的数据是**连续的、预先规划好的 buffer**，传输前后有明确的同步点。\n而 KV cache 在 PagedAttention 下是**分页式、离散分布**的，每个 request 的 KV 散落在不同 block 中，且生命周期动态变化。用 NCCL 传需要先把离散 block 打包成连续 buffer，额外拷贝开销大，也无法利用 KV 的页式管理特性。\n\n### 补充（加分项）\n- 训练场景 NCCL 是**带宽优先**，推理 KV 传输往往是**延迟优先**，设计目标不同。\n- 跨节点 KV 传输更适合用专门的 KV store（如 memcached-like）或 RDMA 单边读写，而非 NCCL 的集合通信模式。",
+      "follow_up": "如果要在多机推理系统中做 disaggregated KV cache 传输，你会选择什么技术方案（底层传输 + 上层管理）？为什么？"
+    },
+    "at": 1791360762981
+  },
+  {
     "questionId": "q-1788674761656-ukvf",
     "category": "集群通信",
     "source": "bank",
