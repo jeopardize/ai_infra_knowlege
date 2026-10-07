@@ -19,25 +19,6 @@ The differences between MTP and Eagle, the MTP head prefill process, and changes
 
 
 <!--/Q-->
-<!--Q id=q-1780887465931-iuox ts=1791275997067 topic=nccl-collectives-->
-
-**问题 (zh)**
-
-nccl中的通信源语有哪些？all-reduce参数更新一次参数需要几次通信？
-
-**问题 (en)**
-
-What are the communication primitives in nccl? How many communications are required for an all-reduce parameter update?
-
-**答案 (zh)**
-
-
-
-**答案 (en)**
-
-
-
-<!--/Q-->
 <!--Q id=q-1780887481850-855v ts=1791275997055-->
 
 **问题 (zh)**
