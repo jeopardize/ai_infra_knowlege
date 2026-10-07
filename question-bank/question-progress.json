@@ -10,5 +10,11 @@
     "attempts": 4,
     "lastScore": 5,
     "lastReviewedAt": 1791337037302
+  },
+  "kb-kv-basic": {
+    "status": "gap",
+    "attempts": 1,
+    "lastScore": 20,
+    "lastReviewedAt": 1791337377365
   }
 }
