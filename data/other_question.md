@@ -38,25 +38,6 @@ In AI training scenarios, distributed training often faces communication bottlen
 
 
 <!--/Q-->
-<!--Q id=q-1780887508039-jduf ts=1791275997031-->
-
-**问题 (zh)**
-
-megatron-lm中通信优化怎么做？
-
-**问题 (en)**
-
-How to optimize communication in megatron-lm?
-
-**答案 (zh)**
-
-
-
-**答案 (en)**
-
-
-
-<!--/Q-->
 <!--Q id=q-1780887539797-obgm ts=1791275997020-->
 
 **问题 (zh)**
