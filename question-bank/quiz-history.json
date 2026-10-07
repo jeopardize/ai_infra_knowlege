@@ -1,5 +1,35 @@
 [
   {
+    "questionId": "q-1780884756742-pal8",
+    "topicId": "kv-cache",
+    "category": "1.0 KV Cache",
+    "source": "bank",
+    "question": "大模型推理时，“KV 缓存（KV Cache）”是降低计算量、提升响应速度的核心机制。请解释 KV 缓存的存储原理，以及在长序列对话场景（如上下文长度超 4k）中，如何优化 KV 缓存的存储结构以减少内存占用？",
+    "answer": "kv cache 大小 = 2 * （head-dim * layer*num ）*seq_len * batch * bytes, 最清楚的解决方法对其进行量化\n通过fp4存储fp16 可以同比缩小很大的缓存大小，除此之外对于注意力的头的优化例如GQA， MQA等技术",
+    "evaluation": {
+      "score": 35,
+      "correct_points": [
+        "给出了 KV Cache 大小的计算公式，体现了对存储容量构成的基本认知",
+        "提到了量化（FP4）是减少 KV Cache 显存占用的优化手段",
+        "提到了 GQA、MQA 等注意力头优化技术可以减小 KV Cache 体积"
+      ],
+      "gaps": [
+        "没有解释 KV Cache 的核心存储原理：即存储每层每个 head 的历史 K、V 张量，目的是避免自回归解码时的重复计算",
+        "没有提及 KV Cache 通常存储在 GPU HBM 中，长序列下会带来显存压力的背景",
+        "没有提到工程层面的优化：PagedAttention 通过分页管理解决 KV Cache 的内存碎片问题",
+        "没有提到滑动窗口注意力等算法层面的其他优化手段",
+        "没有提到系统层面的优化：HBM-DRAM-SSD 多级缓存池 + LRU 策略的动态迁移方案"
+      ],
+      "misconceptions": [
+        "KV Cache 大小公式写法存在表述不严谨：head-dim 应与 num_heads 相乘才是单层 K/V 的总维度，原公式中 head-dim * layer*num 的表述容易产生歧义",
+        "仅提到 FP4 量化，表述较片面，实际工业界常用 INT8/INT4 等多种量化方案"
+      ],
+      "reference_answer": "### KV Cache 存储原理\nKV Cache 存储的是Transformer每层、每个注意力头的历史 token 的 Key 和 Value 张量，在自回归解码过程中复用这些缓存结果，避免每生成一个新 token 都重新计算所有历史 token 的 K/V，从而大幅降低计算量。\n\nKV Cache 通常存放在 GPU HBM 中，随着上下文序列长度增长，显存占用会线性上升，长序列场景下会成为严重的显存瓶颈。\n\n### 长序列下的 KV Cache 存储优化\n1. **工程层面**：PagedAttention 借鉴操作系统虚拟内存思想，将 KV Cache 按固定大小的 block 分页管理，通过 block table 记录逻辑-物理映射，解决连续分配带来的内外碎片问题，提升显存利用率。\n2. **算法层面**：\n   - 量化：将 KV Cache 从 FP16 压缩为 INT8/INT4/FP8 等低精度格式，直接降低显存占用；\n   - MQA/GQA：减少 KV 头的数量，多查询头共享同一组 KV，成比例缩小 KV Cache 体积；\n   - 滑动窗口注意力：只保留最近窗口内的 KV Cache，丢弃更早的历史信息。\n3. **系统层面**：引入 HBM-DRAM-SSD 多级缓存池，结合 LRU 等淘汰策略，把不常用的 KV 页动态迁移到低速存储，超长上下文场景下显著降低 HBM 占用。",
+      "follow_up": "假设一个 7B 模型，32 层，32 个注意力头，head_dim 为 128，上下文长度 8k，batch size 为 16，FP16 精度下 KV Cache 总显存占用约是多少？如果换成 GQA（8 个 Q 头共享 1 组 KV），显存占用会降到原来的多少？"
+    },
+    "at": 1791361616934
+  },
+  {
     "questionId": "q-1788674761657-da2k",
     "category": "集群通信",
     "source": "bank",
