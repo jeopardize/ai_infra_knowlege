@@ -1,5 +1,31 @@
 [
   {
+    "questionId": "q-1780884692048-amnn",
+    "topicId": "kv-cache",
+    "category": "1.0 KV Cache",
+    "source": "bank",
+    "question": "什么是KV Cache",
+    "answer": "transformer是一个自回归的推理过程，在计算过程中需要通过qkv来计算下一个token的可能性，那么随着句子不断增长的过程中，前面token计算的key 和 value 都是固定的，那么把这些存下来的东西就称为kv cache",
+    "evaluation": {
+      "score": 60,
+      "correct_points": [
+        "理解了 KV Cache 是缓存历史 token 的 K/V 值这一核心概念",
+        "意识到自回归推理的特点：生成新 token 时前面的 token 不变",
+        "知道 KV Cache 的目的是避免重复计算"
+      ],
+      "gaps": [
+        "没有说明 KV Cache 避免的是哪种重复计算（每个新 token 都要重算所有历史 K/V）",
+        "没有提到 KV Cache 带来的核心收益（大幅降低推理延迟、提升吞吐）",
+        "没有区分 prefill 阶段和 decode 阶段的差异（prefill 一次性生成初始 KV cache，decode 阶段每步追加 1 个 token 的 K/V）",
+        "没有提 KV cache 的存储代价（长序列下会占大量显存，是推理显存的主要组成部分之一）"
+      ],
+      "misconceptions": [],
+      "reference_answer": "## 什么是 KV Cache\n\nKV Cache 是大语言模型推理中最基础也最重要的优化手段之一。\n\n### 核心思想\n在自回归推理过程中，每生成一个新 token，都需要用当前 token 的 Q 去和**所有历史 token 的 K、V**做注意力计算。而历史 token 的 K、V 一旦算过就不会再变，因此可以把它们缓存下来，避免每一步都重复计算全部历史 K/V。\n\n### 两阶段行为\n- **Prefill 阶段**：输入 prompt 后，一次性算出所有 prompt token 的 K/V，存入缓存。\n- **Decode 阶段**：每生成一个新 token，只需要计算该 token 自己的 K/V 并追加到缓存中，然后用新 Q 去查全部缓存的 K/V。\n\n### 价值与代价\n- **收益**：把 decode 阶段的复杂度从 O(n²) 降为 O(n)，大幅降低延迟、提升吞吐。\n- **代价**：KV Cache 会占用大量显存，序列越长、层数越多、头数越多，占用越大，是长序列推理的主要显存瓶颈之一。",
+      "follow_up": "假设一个 7B 模型（32 层、32 头、头维 128），用 FP16 精度，输入序列长度 4096，batch size 为 1，那么 KV Cache 总共占用多少显存？"
+    },
+    "at": 1791337882145
+  },
+  {
     "questionId": "kb-kv-basic",
     "topicId": "kv-cache",
     "category": "1.0 KV Cache",
