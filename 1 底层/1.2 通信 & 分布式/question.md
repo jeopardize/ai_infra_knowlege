@@ -1,5 +1,24 @@
 
 
+<!--Q id=q-1780887493942-wj9n ts=1791361846451-->
+
+**问题 (zh)**
+
+多GPU通信时NVSHMEM和NVLink的区别
+
+**问题 (en)**
+
+Differences between NVSHMEM and NVLink in multi-GPU communication
+
+**答案 (zh)**
+
+
+
+**答案 (en)**
+
+
+
+<!--/Q-->
 <!--Q id=q-1780887452904-6g91 ts=1791361825596 topic=nccl-collectives-->
 
 **问题 (zh)**
