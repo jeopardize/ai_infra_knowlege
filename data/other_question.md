@@ -57,25 +57,6 @@ How should the transpose kernel of a multidimensional tensor be designed? Should
 
 
 <!--/Q-->
-<!--Q id=q-1780887810461-n831 ts=1791275997000-->
-
-**问题 (zh)**
-
-GPU matrix transpose使用shared memory的好处
-
-**问题 (en)**
-
-The benefits of using shared memory in GPU matrix transpose
-
-**答案 (zh)**
-
-
-
-**答案 (en)**
-
-
-
-<!--/Q-->
 <!--Q id=q-1780887893929-yl18 ts=1791275996971-->
 
 **问题 (zh)**
