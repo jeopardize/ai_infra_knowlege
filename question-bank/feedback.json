@@ -10,5 +10,11 @@
     "content": "每日题目也没有更新",
     "createdAt": 1791424639741,
     "status": "open"
+  },
+  {
+    "id": "fb_1791424810996_7bgie6",
+    "content": "markdown文件实时渲染有问题，不需要将语法显示出来",
+    "createdAt": 1791424810996,
+    "status": "open"
   }
 ]
