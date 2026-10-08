@@ -1,5 +1,24 @@
 
 
+<!--Q id=q-1780887810461-n831 ts=1791425129827-->
+
+**问题 (zh)**
+
+GPU matrix transpose使用shared memory的好处
+
+**问题 (en)**
+
+The benefits of using shared memory in GPU matrix transpose
+
+**答案 (zh)**
+
+
+
+**答案 (en)**
+
+
+
+<!--/Q-->
 <!--Q id=q-1780887848307-g9a5 ts=1791362694993-->
 
 **问题 (zh)**
