@@ -10,6 +10,25 @@
 
 同时会存在多个进程同时下去执行，Autokenizer.from_pretrained, 其他进程都没有什么问题，只有kimi在大集群下会出现竞态问题
 
+<!--Q id=q-1791425313345-yusdz2 ts=1791425313345-->
+
+**问题 (zh)**
+
+CUDA Graph 和 TP 同时开启卡死的问题，如何解决
+
+**问题 (en)**
+
+How to solve the issue of the system freezing when both CUDA Graph and TP (Tensor Parallelism) are enabled?
+
+**答案 (zh)**
+
+
+
+**答案 (en)**
+
+
+
+<!--/Q-->
 <!--Q id=q-1780925589053-k2g4 ts=1791425145458-->
 
 **问题 (zh)**
