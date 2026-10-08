@@ -1,6 +1,6 @@
 {
   "date": "2026-10-08",
-  "summary": "",
+  "summary": "## 今日题目\n1. **VLLM中KV Cache过期策略是什么**\n2. **通信｜控制面和数据面为什么必须分离？**\n3. **KV cache 大小怎么算？**\n4. **通信｜为什么 NCCL 不适合做 KV 传输？至少说三点。**\n5. **通信｜GPUDirect RDMA 的原理和限制条件是什么？**\n6. **大模型推理时，“KV 缓存（KV Cache）”是降低计算量、提升响应速度的核心机制。请解释 KV 缓存的存储原理，以及在长序列对话场景（如上下文长度超 4k）中，如何优化 KV 缓存的存储结构以减少内存占用？**\n7. **讲一下 FlashAttention 的原理**\n8. **cuda的global memory和shared memory访存分别需要注意什么？**\n9. **nccl中的通信源语有哪些？all-reduce参数更新一次参数需要几次通信？**\n10. **多GPU通信时NVSHMEM和NVLink的区别**\n\n## 笔记缺失点总结\n1. **补 KV Cache 核心机制笔记**：现有 KV Cache 笔记仅存框架级目录，未覆盖存储原理、大小计算、过期策略、长序列优化（如 Prefix Caching、量化）等基础考点，且掌握度 4 项全未覆盖，需优先完善「2 框架/1.0 KV Cache/KV Cache.md」。\n2. **补 FlashAttention 相关笔记**：今日第 7 题直接考察，现有 Attention 笔记未提及该核心优化算子，需在「0 LLM/Attention/attention相关知识.md」中补充 FlashAttention 原理、访存优化逻辑。\n3. **补 NCCL 通信细节笔记**：现有「1 底层/1.2 通信 & 分布式/ncll.md」掌握度薄弱（1 项未掌握、1 项未覆盖），需补充通信原语分类、All-Reduce 通信次数、NCCL 适用场景及不适合 KV 传输的原因。\n4. **补 CUDA 访存优化笔记**：今日第 8 题考察 global/shared memory 访存注意事项，现有「1 底层/1.0 GPU&异构计算/CUDA.md」未覆盖该硬件访存细节，需补充存储层级、访存带宽、对齐与合并访问等内容。",
   "questions": [
     {
       "id": "q-1781537383942-i2pf",
@@ -155,5 +155,6 @@
       "category": "1.2 通信 & 分布式",
       "file": "1 底层/1.2 通信 & 分布式/question.md"
     }
-  ]
+  ],
+  "sentAt": 1791467757297
 }
