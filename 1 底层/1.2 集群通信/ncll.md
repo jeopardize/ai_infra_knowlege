@@ -13,6 +13,17 @@ P2P 通信这种模式只有一个sender和一个receiver，实现起来比较�
 * All-reduce：从多个sender那里接收数据，最终combine到每一个节点上。
 ![allreduce](images/allreduce.png)
 
+| 算子              | 语义                                        | 每卡发送量（ring） | 推理中的典型用户                |
+| ----------------- | ------------------------------------------- | ------------------ | ------------------------------- |
+| **Send/Recv**     | 点对点收发                                  | S                  | PP：stage 边界传 activation     |
+| **Broadcast**     | 根 rank 的数据发给全体                      | S（根卡）          | 权重 / 配置分发                 |
+| **Reduce**        | 全体数据归约到根                            | (N-1)/N × S        | 少用                            |
+| **AllReduce**     | 归约结果人手一份（= RS + AG）               | 2(N-1)/N × S       | TP：attn/MLP 输出归约           |
+| **ReduceScatter** | 归约后按 rank 切片，各拿一块                | (N-1)/N × S        | SP、DP attention 的 token 聚合  |
+| **AllGather**     | 各 rank 分片拼成完整张量                    | (N-1)/N × S        | SP、DP attention 的 token 聚合  |
+| **AllToAll**      | 第 i 卡发给第 j 卡的是**不同**的数据（转置式重分布） | 取决于路由  | EP：MoE 的 dispatch / combine   |
+
+
 # NCCL 实现
 NCCL 实现成 CUDA C++ kernels，包含3种 primitive operations： Copy，Reduce，ReduceAndCopy。
 

@@ -2,13 +2,11 @@
 
 KV Cache 是 llm serving中相当关键的一部分
 
-需要理解：
-
-什么是kv cache
-
-然后如何管理kv cache
-
-如何可以更少的计算kv cache
+> [!important] \
+> 需要理解：\
+> 什么是kv cache \
+> 然后如何管理kv cache \
+> kv cache 优化
 
 # 什么是KV Cache & 瓶颈分析
 
@@ -27,13 +25,11 @@ KV Cache 是 llm serving中相当关键的一部分
 有了 KV Cache，Prefill 阶段先算好并存入显存，Decode 阶段只计算新 token 的 Q/K/V，并拼接使用缓存，从而把 Decode 的注意力计算从 O(n²) 降到 O(n)，显著提升推理效率。代价是会占用一定显存，实际系统中通常会配合 PagedAttention 或 GQA 来优化。
 
 
-## KV Cache 显存占用定量分析
+## KV Cache 显存大小计算
 
-这个逻辑很混乱，应该先计算一个token需要耗费多少（一个slot的大小）
-
-b 为batch size，**<u>t 为序列总长度（包括用户提供的提示词（prompt）以及模型生成的补全部分（completion））</u>**，n_layer 为解码器块/注意力层数，n_heads 为每个注意力层的注意力头数，d_head 为注意力层的隐藏维度，p_a 为精度对应比特数目。kv各一个所以需要乘以2。多头注意力（MHA）模型使用 KV 缓存技术，每个 token 的内存消耗量（以字节为单位）为：
+b 为batch size，**<u> seq_len 为序列总长度（包括用户提供的提示词（prompt）以及模型生成的补全部分（completion））</u>**，n_layer 为解码器块/注意力层数，n_heads 为每个注意力层的注意力头数，d_head 为注意力层的隐藏维度，p_a 为精度对应比特数目。kv各一个所以需要乘以2。多头注意力（MHA）模型使用 KV 缓存技术，每个 token 的内存消耗量（以字节为单位）为：
 $$
-kv — cache-memory-bytes = 2 × b × t × n_{layer} × n_{heads} × d_{head}× (p_a / 8)
+kv\_cache\_memory = 2 × b × seq\_len × (n_{layer} × n_{heads} × d_{head}× (p_a / 8))
 $$
 其中，
 
@@ -109,55 +105,6 @@ for i in (0, seq_len):
 
 
 # 减少 KV Cache 显存开销的的优化技术 
-
-> [!IMPORTANT]
->
-> 解决的核心问题是：用更少的字节保存历史信息，能否在质量可接受的前提下，支持更长上下文和更多并发
-
-## 降低单请求存储开销（如何让 Cache 更小）
-
-*目标：通过算法或精度优化，减少单个序列占用的显存空间。*
-
-### 架构层面的压缩
-
-- **GQA / MQA (Grouped/Multi-Query Attention)**： 减少 Key/Value 的头数（Heads），迫使多个 Query 共享同一组 KV，直接成倍缩减 Cache 体积。
-- **MLA (Multi-head Latent Attention)**： DeepSeek-V2/V3 核心创新，通过低秩联合压缩 KV，极大降低传输和存储负担。
-
-
-### 长度压缩
-
-- **滑动窗口注意力 (Sliding Window Attention)**： 限制每个 Token 只能关注局部窗口，丢弃过远的 KV Cache，以牺牲一定全局感知为代价换取线性复杂度。
-
-### 低精度量化
-
-- **KV Cache Quantization (INT8/INT4)**： 将原本 FP16/BF16 的 Cache 量化至更低比特，直接压缩内存占用，但需权衡精度损失。
-
-一组浮点数共享
-
-------
-
-## 提高跨请求复用效率（如何更少地重复计算）
-
-*目标：利用请求间的公共前缀，避免重复计算相同的 Context。*
-
-### 前缀缓存 (Prefix Caching)
-
-- **原理**：在多轮对话或 Agent 场景中，System Prompt 或工具调用描述通常占据大量前缀且固定不变。
-- **实现**：通过哈希索引识别相同的前缀 Token，直接复用已计算好的 KV Cache Block，从而跳过 Prefill 阶段的重复计算。
-
-### 多级缓存架构 (Tiered Caching)
-
-- **背景**：单纯靠 GPU 显存（HBM）无法存下所有历史会话的 Cache，且随着 Batch Size 增大容易 OOM。
-- **分级策略**：构建 **HBM (GPU) -> DRAM (CPU) -> SSD (磁盘)** 的三级缓存池。 **HBM**：存放当前正在推理的活跃 Cache，追求极致速度。 **DRAM/SSD**：存放冷数据或历史会话的 Cache，作为容量扩展。
-- **挑战**：需要处理跨设备的数据迁移（Offloading）延迟，平衡 I/O 速度与存储容量。
-
-### RadixAttention
-
-
-
-
-
-
 
 
 
