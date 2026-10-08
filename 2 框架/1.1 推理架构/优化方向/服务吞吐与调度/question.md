@@ -1,15 +1,16 @@
 
 
-<!--Q id=q-1791457939642-cupamk ts=1791457939642-->
+<!--Q id=q-1791457939642-cupamk ts=1791458254501-->
 
 **问题 (zh)**
 
-为什么要做dynamic 调度，
-固定batchsizze的问题在哪里；
-max token/token budget 怎么确定，
-dynamic batch 和 packing 是什么关系？只做Dynamic Batch，不做packing行不行
-padding为什么会造成算力浪费
-负载均衡到底均衡什么
+为什么要做dynamic 调度 \\
+固定batchsizze的问题在哪里\\
+max token/token budget 怎么确定\\
+dynamic batch 和 packing 是什么关系？只做Dynamic Batch，不做packing行不行;\\
+只用token数作为Dynamic Batch的预算，真的能做到阉割计算负载均衡么？\\
+padding为什么会造成算力浪费\\
+负载均衡到底均衡什么\\
 
 **问题 (en)**
 
