@@ -1,5 +1,32 @@
 [
   {
+    "questionId": "q-1780887465931-iuox",
+    "topicId": "nccl-collectives",
+    "category": "1.2 通信 & 分布式",
+    "source": "bank",
+    "question": "nccl中的通信源语有哪些？all-reduce参数更新一次参数需要几次通信？",
+    "answer": "nccl中的通信源语有all gather all reduce，broadcast等， all reduce需要2次通信",
+    "evaluation": {
+      "score": 30,
+      "correct_points": [
+        "知道 NCCL 包含 all-gather、all-reduce、broadcast 等通信原语",
+        "知道 all-reduce 的通信次数为 2 次（针对 ring all-reduce 算法）"
+      ],
+      "gaps": [
+        "没有完整列出常见的 NCCL 集合通信原语（缺少 reduce-scatter、reduce、all-to-all 等）",
+        "没有说明 2 次通信对应的是 ring all-reduce 的两个阶段（reduce-scatter + all-gather）",
+        "没有区分「通信次数」和「通信量/数据传输量」的概念",
+        "没有提及 all-reduce 的其他实现算法（如 tree all-reduce）在通信次数上的差异"
+      ],
+      "misconceptions": [
+        "回答过于简略，容易让人误以为所有 all-reduce 实现都是固定 2 次通信，未明确前提是 ring 算法"
+      ],
+      "reference_answer": "## NCCL 常见通信原语\nNCCL（NVIDIA Collective Communications Library）提供的核心集合通信原语包括：\n- **broadcast**：单卡发、多卡收，把同一份数据广播到所有卡\n- **reduce**：多卡数据按指定算子（如 sum）归约到单卡\n- **all-reduce**：多卡数据归约后，结果发回所有卡（等价于 reduce + broadcast，但通常更高效）\n- **reduce-scatter**：先全局归约，再按维度切分到各卡（all-reduce 的前半段）\n- **all-gather**：把各卡的数据拼起来，结果所有卡都有完整副本（all-reduce 的后半段）\n- **all-to-all**：每卡给其他所有卡发不同的数据，一对一全交换\n- 此外还有 send/recv 点对点、scatter、gather 等。\n\n## all-reduce 的通信次数（以 ring all-reduce 为例）\n**Ring all-reduce 算法需要 2 轮通信**：\n1. 第一轮：**reduce-scatter**——沿环形传递，每卡得到一部分归约结果\n2. 第二轮：**all-gather**——再沿环形传递，每卡集齐所有部分，得到完整归约结果\n\n> 注：这里的「2 次」是指算法层面的两轮逻辑通信；实际物理传输量为 `2*(N-1)/N * data_size`，和卡数 N 相关。tree all-reduce 等其他算法的通信次数和延迟特性不同。",
+      "follow_up": "Ring all-reduce 的总通信量（字节数）和卡数 N 是什么关系？为什么说它在大卡数下比 naive 的 reduce + broadcast 更高效？"
+    },
+    "at": 1791457479465
+  },
+  {
     "questionId": "q-1780884756742-pal8",
     "topicId": "kv-cache",
     "category": "1.0 KV Cache",

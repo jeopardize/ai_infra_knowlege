@@ -1,0 +1,9 @@
+[
+  {
+    "questionId": "q-1780887465931-iuox",
+    "favoritedAt": 1791457480893,
+    "auto": true,
+    "score": 30,
+    "label": "nccl中的通信源语有哪些？all-reduce参数更新一次参数需要几次通信？"
+  }
+]
