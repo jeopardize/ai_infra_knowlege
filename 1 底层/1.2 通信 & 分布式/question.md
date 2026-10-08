@@ -1,5 +1,24 @@
 
 
+<!--Q id=q-1780887539797-obgm ts=1791425198027-->
+
+**问题 (zh)**
+
+在小数据量场景使用NVSHMEM，每个GPU直接读取其他GPU的数据，在本地reduce，相比ring all-reduce的好处
+
+**问题 (en)**
+
+In scenarios with small data volumes, NVSHMEM allows each GPU to directly read data from other GPUs and perform local reduction, offering advantages over ring all-reduce.
+
+**答案 (zh)**
+
+
+
+**答案 (en)**
+
+
+
+<!--/Q-->
 <!--Q id=q-1780887465931-iuox ts=1791362046763 topic=nccl-collectives-->
 
 **问题 (zh)**
