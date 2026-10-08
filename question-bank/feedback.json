@@ -3,42 +3,56 @@
     "id": "fb_1791424611993_stwe1k",
     "content": "题目每日推送，并没有准时推送",
     "createdAt": 1791424611993,
-    "status": "open"
+    "status": "done",
+    "processedAt": 1791469240641,
+    "note": "ca1b9a2: 推送修复+每日轮换+markdown渲染+题库拖拽/新建文件夹实时显示+大纲面板+编辑区拉宽"
   },
   {
     "id": "fb_1791424639741_jkgqvb",
     "content": "每日题目也没有更新",
     "createdAt": 1791424639741,
-    "status": "open"
+    "status": "done",
+    "processedAt": 1791469240641,
+    "note": "ca1b9a2: 推送修复+每日轮换+markdown渲染+题库拖拽/新建文件夹实时显示+大纲面板+编辑区拉宽"
   },
   {
     "id": "fb_1791424810996_7bgie6",
     "content": "markdown文件实时渲染有问题，不需要将语法显示出来",
     "createdAt": 1791424810996,
-    "status": "open"
+    "status": "done",
+    "processedAt": 1791469240641,
+    "note": "ca1b9a2: 推送修复+每日轮换+markdown渲染+题库拖拽/新建文件夹实时显示+大纲面板+编辑区拉宽"
   },
   {
     "id": "fb_1791424957833_bkx90i",
     "content": "题库已完成新增文件夹，但是无法实时显示出来",
     "createdAt": 1791424957833,
-    "status": "open"
+    "status": "done",
+    "processedAt": 1791469240641,
+    "note": "ca1b9a2: 推送修复+每日轮换+markdown渲染+题库拖拽/新建文件夹实时显示+大纲面板+编辑区拉宽"
   },
   {
     "id": "fb_1791425006881_7sjjc9",
     "content": "题库同时提供文件夹内文件可以拖动更换位置，以及删除功能，确保页面可以实时更新",
     "createdAt": 1791425006881,
-    "status": "open"
+    "status": "done",
+    "processedAt": 1791469240641,
+    "note": "ca1b9a2: 推送修复+每日轮换+markdown渲染+题库拖拽/新建文件夹实时显示+大纲面板+编辑区拉宽"
   },
   {
     "id": "fb_1791440568126_rmuc5z",
     "content": "markdown文档无法显示文本大纲，做一个可收缩可展开的，他大纲展示位置就放置在文档最上方一块区域，可以上下伸缩展示大小，",
     "createdAt": 1791440568126,
-    "status": "open"
+    "status": "done",
+    "processedAt": 1791469240641,
+    "note": "ca1b9a2: 推送修复+每日轮换+markdown渲染+题库拖拽/新建文件夹实时显示+大纲面板+编辑区拉宽"
   },
   {
     "id": "fb_1791457359491_0l7i1l",
     "content": "笔记markdown可编辑范围可以调整，可以拉宽",
     "createdAt": 1791457359491,
-    "status": "open"
+    "status": "done",
+    "processedAt": 1791469240641,
+    "note": "ca1b9a2: 推送修复+每日轮换+markdown渲染+题库拖拽/新建文件夹实时显示+大纲面板+编辑区拉宽"
   }
 ]
