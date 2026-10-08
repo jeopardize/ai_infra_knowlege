@@ -1,50 +1,8 @@
 {
-  "q-1781537383942-i2pf": {
+  "q-1780887465931-iuox": {
     "status": "gap",
     "attempts": 1,
-    "lastScore": 0,
-    "lastReviewedAt": 1791276482019
-  },
-  "q-1788674761659-87uf": {
-    "status": "gap",
-    "attempts": 4,
-    "lastScore": 5,
-    "lastReviewedAt": 1791337037302
-  },
-  "kb-kv-basic": {
-    "status": "gap",
-    "attempts": 1,
-    "lastScore": 20,
-    "lastReviewedAt": 1791337377365
-  },
-  "q-1780884692048-amnn": {
-    "status": "learning",
-    "attempts": 1,
-    "lastScore": 60,
-    "lastReviewedAt": 1791337882145
-  },
-  "q-1788674761656-ukvf": {
-    "status": "mastered",
-    "attempts": 2,
-    "lastScore": 85,
-    "lastReviewedAt": 1791339308367
-  },
-  "q-1788674761657-eiha": {
-    "status": "gap",
-    "attempts": 2,
-    "lastScore": 25,
-    "lastReviewedAt": 1791360841668
-  },
-  "q-1788674761657-da2k": {
-    "status": "gap",
-    "attempts": 1,
-    "lastScore": 25,
-    "lastReviewedAt": 1791361317662
-  },
-  "q-1780884756742-pal8": {
-    "status": "gap",
-    "attempts": 1,
-    "lastScore": 35,
-    "lastReviewedAt": 1791361616934
+    "lastScore": 30,
+    "lastReviewedAt": 1791457479464
   }
 }
