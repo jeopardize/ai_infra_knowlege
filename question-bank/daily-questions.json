@@ -1,6 +1,6 @@
 {
   "date": "2026-10-10",
-  "summary": "",
+  "summary": "## 今日题目\n1. **nccl中的通信源语有哪些？all-reduce参数更新一次参数需要几次通信？**\n2. **怎么知道一个batch应该塞多少token？**\n3. **VLLM中KV Cache过期策略是什么**\n4. **多维tensor的transpose kernel怎么设计，是否需要根据i, j的位置设计不同的kernel**\n5. **cuda的global memory和shared memory访存分别需要注意什么？**\n6. **通信｜控制面和数据面为什么必须分离？**\n7. **请说明“AI 编译优化”（如 TVM、TensorRT）的核心工作流程，对比“基于模板的编译”与“自动搜索的编译”两种技术路线的优缺点，以及在面对异构硬件（CPU+GPU+NPU）时的编译策略设计**\n8. **什么 RMSNorm 在大模型里比 LayerNorm 更常见**\n9. **在小数据量场景使用NVSHMEM，每个GPU直接读取其他GPU的数据，在本地reduce，相比ring all-reduce的好处**\n10. **NPU和GPU的本质区别是**\n\n---\n\n## 笔记缺失点总结\n1. **补【AI 编译优化】方向笔记**：当前笔记库完全无 TVM/TensorRT、编译流程、模板/自动搜索编译、异构编译策略相关内容，对应第7题无知识储备。\n2. **补【NCCL 集合通信进阶】方向笔记**：现有 `ncll.md`（疑拼写错误）仅覆盖基础，缺少 all-reduce 通信次数推导、NVSHMEM 原理、控制面/数据面分离等内容，对应第1、6、9题缺口大。\n3. **补【推理调度与性能估算】方向笔记**：无 Continuous Batching、batch token 数计算方法、KV Cache 过期策略细节，现有 VLLM 笔记偏流程，对应第2、3题知识点薄弱。\n4. **补【CUDA Kernel 设计与 GPU 架构】方向笔记**：现有 CUDA/算子笔记偏基础，无 transpose kernel 设计、global/shared memory 访存优化细节，也无 NPU 架构对比内容，对应第4、5、10题缺失明显。",
   "questions": [
     {
       "id": "q-1780887465931-iuox",
@@ -153,5 +153,6 @@
       "category": "1.0 GPU&异构计算",
       "file": "1 底层/1.0 GPU&异构计算/question.md"
     }
-  ]
+  ],
+  "sentAt": 1791590419356
 }
