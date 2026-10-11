@@ -192,7 +192,7 @@ Communications | What is the difference in communication volume and frequency be
 
 
 <!--/Q-->
-<!--Q id=q-1788674761658-kzt9 ts=1791275996738-->
+<!--Q id=q-1788674761658-kzt9 ts=1791722218665-->
 
 **问题 (zh)**
 
@@ -204,7 +204,7 @@ Communication | If a decode node crashes during transmission, how should the req
 
 **答案 (zh)**
 
-
+decode节点挂了之后，需要看p侧处理的逻辑 1. 如果p侧的处理逻辑是，他会保存kv cache全层的信息直到pd传输完成后再将内容废弃的话，那么此时如果发生decode节点挂了，是可以从p重新拉取一次kv cache ，之后重新进行推理；2. 如果p的是传一层废弃一层的话，那么当decode节点挂了，就需要abort 他之后，并同步告知p，p会讲该请求从running 置换到waiting中，直接raise出去
 
 **答案 (en)**
 
