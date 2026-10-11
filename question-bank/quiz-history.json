@@ -1,5 +1,33 @@
 [
   {
+    "questionId": "q-1788674761658-kzt9",
+    "category": "集群通信优化",
+    "source": "bank",
+    "question": "通信｜传输进行中 decode 节点挂了，请求怎么处理？",
+    "answer": "decode节点挂了之后，需要看p侧处理的逻辑 1. 如果p侧的处理逻辑是，他会保存kv cache全层的信息直到pd传输完成后再将内容废弃的话，那么此时如果发生decode节点挂了，是可以从p重新拉取一次kv cache ，之后重新进行推理；2. 如果p的是传一层废弃一层的话，那么当decode节点挂了，就需要abort 他之后，并同步告知p，p会讲该请求从running 置换到waiting中，直接raise出去",
+    "evaluation": {
+      "score": 55,
+      "correct_points": [
+        "意识到了 prefill 节点（P）和 decode 节点的拆分架构",
+        "考虑到了 KV cache 的保留策略对故障恢复的影响",
+        "提到了需要通知 P 侧清理/重置请求状态"
+      ],
+      "gaps": [
+        "没有提到服务层面的重试/故障转移机制（如重试到其他 decode 节点）",
+        "没有区分用户可见的行为（请求失败 vs 透明恢复）",
+        "没有提到请求状态机的完整流转（running → waiting → 重新调度）",
+        "没有涉及一致性问题（如何保证重试后结果正确）"
+      ],
+      "misconceptions": [
+        "“传一层废弃一层”的场景下直接 raise 出去过于绝对，实际系统通常会选择从头重算而不是直接失败",
+        "表述中混淆了“abort 请求”和“返回错误给用户”的层次，abort 是内部操作，用户侧应该是重试或报错"
+      ],
+      "reference_answer": "## 分布式推理中 decode 节点挂掉的处理流程\n\n在 **Prefill/Decode 分离**（P/D 分离）的架构下，decode 节点故障的处理依赖 prefill 节点对 KV cache 的保留策略，主要有两种模式：\n\n### 模式 1：Prefill 节点保留完整 KV cache（常见）\n- P 侧在把 KV cache 传给 decode 节点后，**不会立即删除**，而是保留到请求结束\n- decode 节点挂掉时：\n  1.  调度器检测到节点故障（心跳超时 / 健康检查失败）\n  2.  将该 decode 节点上的所有请求标记为 **待重调度**\n  3.  从 P 侧重新拉取对应请求的 KV cache 到一个新的 decode 节点\n  4.  从最近一个已生成的 token 位置继续 decode，**用户无感知（透明重试）**\n\n### 模式 2：Prefill 节点不保留 KV cache（传完即删）\n- P 侧为了省显存，传输完 KV cache 后立即释放\n- decode 节点挂掉时：\n  1.  通知 P 侧清理该请求的残余状态\n  2.  该请求无法从断点恢复，需要 **从头重新 prefill + decode**\n  3.  如果是流式请求，可能需要丢弃已经返回给用户的部分 token，或者在应用层做去重\n\n### 通用处理步骤\n1.  **故障检测**：通过心跳、健康检查、请求超时发现节点挂掉\n2.  **状态回收**：清理故障节点上的 KV cache、请求上下文\n3.  **重试/降级**：根据 KV cache 保留策略选择“断点续跑”或“从头重算”\n4.  **错误上报**：如果重试次数耗尽或不支持重试，返回 5xx 错误给用户",
+      "follow_up": "如果系统采用了 PagedAttention + KV cache 分页共享机制，decode 节点挂掉后，prefill 节点上保留的 KV cache 还能怎么优化恢复速度？（提示：从 block 复用、避免全量拷贝的角度思考）"
+    },
+    "at": 1791722176560
+  },
+  {
     "questionId": "q-1780887465931-iuox",
     "topicId": "nccl-collectives",
     "category": "1.2 通信 & 分布式",
