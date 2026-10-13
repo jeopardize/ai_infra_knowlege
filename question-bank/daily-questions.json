@@ -1,6 +1,6 @@
 {
   "date": "2026-10-13",
-  "summary": "",
+  "summary": "## 今日题目\n1. **KV cache 大小怎么算？**\n2. **通信｜传输进行中 decode 节点挂了，请求怎么处理？**\n3. **如果业务混合了长短 prompt，你会设计怎样的策略来动态决定是否走 PD 分离，而不是一刀切？**\n4. **一条长度10000的序列和是条长度1000的序列，token总数一样，计算量一样么?**\n5. **CUDA Graph 和 TP 同时开启卡死的问题，如何解决**\n6. **如果必须用 NCCL 做多卡 KV 传输，你会选择 NCCL 的哪种原语（点对点 send/recv 还是 all-gather 等集合原语）？在什么场景下反而可能比手写 RDMA 更合适？**\n7. **MTP是否属于并行预测Token\\ \n如何在保持自回归生成情况下提升效率**\n8. **为什么要做PD分离|| 再实际部署中，如何调整prefilll和decode的资源比例（比例设置会受到哪些因素影响）**\n9. **PP 流水线并行的通信逻辑和通信量计算思路**\n10. **Prefix caching 和 KV cache 有什么区别？**\n\n---\n\n## 笔记缺失点总结\n1. **补推理核心概念笔记**：Prefix Caching、Continuous Batching、PagedAttention 均未覆盖，且 KV Cache 仅掌握 1/4，优先补 `1 底层/1.4 KV Cache/` 和 `2 框架/1.1 推理架构/优化方向/显存优化与offload/` 下的相关主题，明确 Prefix Caching 与 KV Cache 的区别及落地方式。\n2. **补并行策略完整体系笔记**：训练侧 DP/TP/PP、ZeRO/FSDP 全未覆盖，推理侧 TP 相关坑点（如 CUDA Graph + TP 卡死）无对应记录，需补 `2 框架/1.1 推理架构/推理并行/5p推理.md` 的 PP/TP 细节，以及训练并行的基础通信逻辑。\n3. **补 PD 分离与调度策略笔记**：现有 pd.md 仅为基础内容，缺少长短 prompt 混合场景的动态调度策略、prefill/decode 资源比例调优方法，需补充 `2 框架/1.1 推理架构/优化方向/服务吞吐与调度/` 下的动态 PD 分离、故障处理相关内容。\n4. **补 NCCL 原语选型笔记**：现有 nccl.md 偏基础，缺少多卡 KV 传输场景下的原语选型（点对点 vs 集合通信）、与手写 RDMA 的适用场景对比，需补充 `1 底层/1.2 集群通信/nccl.md` 的推理侧通信实践内容。",
   "questions": [
     {
       "id": "kb-kv-basic",
@@ -154,5 +154,6 @@
       "category": "1.4 KV Cache",
       "file": "1 底层/1.4 KV Cache/question.md"
     }
-  ]
+  ],
+  "sentAt": 1791849632298
 }
