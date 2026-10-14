@@ -1,6 +1,6 @@
 {
   "date": "2026-10-14",
-  "summary": "## 今日题目\n1. **通信｜GPUDirect RDMA 的原理和限制条件是什么？**\n2. **大模型推理时，“KV 缓存（KV Cache）”是降低计算量、提升响应速度的核心机制。请解释 KV 缓存的存储原理，以及在长序列对话场景（如上下文长度超 4k）中，如何优化 KV 缓存的存储结构以减少内存占用？**\n3. **VLLM中KV Cache过期策略是什么**\n4. **通信｜控制面和数据面为什么必须分离？**\n5. **通信｜为什么 NCCL 不适合做 KV 传输？至少说三点。**\n6. **多维tensor的transpose kernel怎么设计，是否需要根据i, j的位置设计不同的kernel**\n7. **GPU matrix transpose使用shared memory的好处**\n8. **megatron-lm中通信优化怎么做？**\n9. **EP专家并行场景下通信开销怎么算**\n10. **在 AI 训练场景中，分布式训练常面临通信瓶颈问题。请说明 AllReduce、Broadcast、ReduceScatter 这三种核心通信算子的适用场景差异，并分析在千亿参数大模型训练中，如何选择通信策略以降低延迟、提升吞吐量？**\n\n## 笔记缺失点总结\n1. **训练并行体系完全空白**：需补「2 框架/1.2 训练框架」下的数据并行、张量并行、流水线并行、ZeRO/FSDP、混合精度训练、激活重算等核心笔记，当前题 8/9/10 无对应训练侧知识支撑。\n2. **集群通信专题深度不足**：需补「1 底层/1.2 集群通信」下的 GPUDirect RDMA、控制面/数据面分离设计、集合通信算子（AllReduce/ReduceScatter 等）适用场景对比，当前通信类题目（1/4/5/10）覆盖缺口大。\n3. **KV Cache 推理优化体系不全**：需补「1 底层/1.4 KV Cache」下的长序列存储优化（如分页、量化、稀疏化）、Prefix Caching，以及「2 框架/1.1 推理架构/推理引擎/VLLM」下的 PagedAttention 与 KV 过期策略细节，当前题 2/3 对应知识点未覆盖。\n4. **算子与 GPU 硬件基础薄弱**：需补「1 底层/1.1 算子 & kernel」下的多维 transpose kernel 设计、shared memory 优化原理，以及 GPU 架构基础笔记，支撑题 6/7 的硬件层面理解。",
+  "summary": "## 今日题目\n1. **通信｜GPUDirect RDMA 的原理和限制条件是什么？**\n2. **大模型推理时，“KV 缓存（KV Cache）”是降低计算量、提升响应速度的核心机制。请解释 KV 缓存的存储原理，以及在长序列对话场景（如上下文长度超 4k）中，如何优化 KV 缓存的存储结构以减少内存占用？**\n3. **VLLM中KV Cache过期策略是什么**\n4. **通信｜控制面和数据面为什么必须分离？**\n5. **通信｜为什么 NCCL 不适合做 KV 传输？至少说三点。**\n6. **多维tensor的transpose kernel怎么设计，是否需要根据i, j的位置设计不同的kernel**\n7. **GPU matrix transpose使用shared memory的好处**\n8. **megatron-lm中通信优化怎么做？**\n9. **EP专家并行场景下通信开销怎么算**\n10. **在 AI 训练场景中，分布式训练常面临通信瓶颈问题。请说明 AllReduce、Broadcast、ReduceScatter 这三种核心通信算子的适用场景差异，并分析在千亿参数大模型训练中，如何选择通信策略以降低延迟、提升吞吐量？**\n\n## 笔记缺失点总结\n1. **训练并行体系笔记完全缺失**：需补数据并行、张量并行、流水线并行、ZeRO/FSDP 等训练方向核心笔记，对应 megatron-lm 通信优化、EP 专家并行开销类题目无知识基础。\n2. **NCCL 与集合通信笔记深度不足**：现有 `1 底层/1.2 集群通信/ncll.md` 内容偏浅，需补集合通信算子（AllReduce/ReduceScatter 等）适用场景、NCCL 传输特性与限制，支撑通信类题目。\n3. **KV Cache 推理优化笔记覆盖不全**：现有 KV Cache 笔记仅 1 项未掌握、2 项未覆盖，需补长序列存储优化、vLLM PagedAttention 过期策略、Prefix Caching 等内容，对应 KV 缓存类题目。\n4. **GPU 算子与架构基础笔记薄弱**：需补 GPU 架构基础、shared memory 特性、transpose 等常用 kernel 设计，支撑算子类题目。",
   "questions": [
     {
       "id": "q-1788674761657-da2k",
@@ -154,5 +154,5 @@
       "file": "2 框架/1.1 推理架构/优化方向/集群通信优化/question.md"
     }
   ],
-  "sentAt": 1791936054583
+  "sentAt": 1791936090633
 }
