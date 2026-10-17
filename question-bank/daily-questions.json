@@ -1,6 +1,6 @@
 {
   "date": "2026-10-17",
-  "summary": "",
+  "summary": "## 今日题目\n1. **KV cache 大小怎么算？**\n2. **通信｜传输进行中 decode 节点挂了，请求怎么处理？**\n3. **怎么知道一个batch应该塞多少token？**\n4. **4机32卡H200训练从FSDP换成HSDP，通信时间会减少多少**\n5. **在小数据量场景使用NVSHMEM，每个GPU直接读取其他GPU的数据，在本地reduce，相比ring all-reduce的好处**\n6. **为什么要做dynamic 调度 \\\\\n固定batchsizze的问题在哪里\\\\\nmax token/token budget 怎么确定\\\\\ndynamic batch 和 packing 是什么关系？只做Dynamic Batch，不做packing行不行;\\\\\n只用token数作为Dynamic Batch的预算，真的能做到阉割计算负载均衡么？\\\\\npadding为什么会造成算力浪费\\\\\n负载均衡到底均衡什么\\\\**\n7. **NPU和GPU的本质区别是**\n8. **多维tensor的transpose kernel怎么设计，是否需要根据i, j的位置设计不同的kernel**\n9. **一条长度10000的序列和是条长度1000的序列，token总数一样，计算量一样么?**\n10. **进程之间那些常见通信方式**\n\n## 笔记缺失点总结\n1. **训练并行/FSDP 方向严重缺失**：第4题涉及 FSDP、HSDP 对比，但训练数据并行、ZeRO/FSDP 主题完全未覆盖，需补 `2 框架/1.2 训练框架/` 下的 FSDP、混合并行策略、通信量估算笔记。\n2. **推理调度（Dynamic Batch/Packing）笔记薄弱**：第3、6题围绕 batch 调度、负载均衡，但 Continuous Batching、调度策略未系统整理，需补 `2 框架/1.1 推理架构/优化方向/服务吞吐与调度/` 下的 dynamic batch、padding 浪费、packing 相关笔记。\n3. **底层通信/NVSHMEM 与集合通信对比缺失**：第2、5题涉及 decode 节点故障处理、NVSHMEM vs ring all-reduce，现有集群通信笔记缺 NVSHMEM、故障容错、小消息通信优化，需补 `1 底层/1.2 集群通信/` 下的 NVSHMEM 原理与通信容错笔记。\n4. **GPU/NPU 架构与算子设计笔记不足**：第7、8题涉及 NPU vs GPU、transpose kernel 设计，但 GPU 架构基础、算子设计细节薄弱，需补 `1 底层/1.0 GPU&异构计算/` 的硬件架构对比，以及 `1 底层/1.1 算子 & kernel/` 的 transpose 等典型 kernel 设计笔记。",
   "questions": [
     {
       "id": "kb-kv-basic",
@@ -154,5 +154,6 @@
       "category": "computer_basecs",
       "file": "computer_basecs/question.md"
     }
-  ]
+  ],
+  "sentAt": 1792195220826
 }
