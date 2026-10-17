@@ -1,6 +1,6 @@
 {
   "date": "2026-10-17",
-  "summary": "## 今日题目\n1. **KV cache 大小怎么算？**\n2. **通信｜传输进行中 decode 节点挂了，请求怎么处理？**\n3. **怎么知道一个batch应该塞多少token？**\n4. **4机32卡H200训练从FSDP换成HSDP，通信时间会减少多少**\n5. **在小数据量场景使用NVSHMEM，每个GPU直接读取其他GPU的数据，在本地reduce，相比ring all-reduce的好处**\n6. **为什么要做dynamic 调度 \\\n固定batchsizze的问题在哪里\\\nmax token/token budget 怎么确定\\\ndynamic batch 和 packing 是什么关系？只做Dynamic Batch，不做packing行不行;\\\n只用token数作为Dynamic Batch的预算，真的能做到阉割计算负载均衡么？\\\npadding为什么会造成算力浪费\\\n负载均衡到底均衡什么\\**\n7. **NPU和GPU的本质区别是**\n8. **多维tensor的transpose kernel怎么设计，是否需要根据i, j的位置设计不同的kernel**\n9. **一条长度10000的序列和是条长度1000的序列，token总数一样，计算量一样么?**\n10. **进程之间那些常见通信方式**\n\n## 笔记缺失点总结\n1. **训练并行方向严重缺失**：FSDP、HSDP、数据/张量/流水线并行均无对应笔记，需补充「训练框架/并行策略」类笔记，覆盖FSDP原理、HSDP混合并行通信量计算逻辑。\n2. **推理调度体系不完整**：Continuous Batching、动态调度、packing、token budget 相关内容零散，需补充「推理架构/优化方向/服务吞吐与调度」下的动态批处理与packing专题笔记。\n3. **硬件架构与算子基础薄弱**：GPU架构、NPU差异、transpose kernel设计、Roofline分析均无系统笔记，需补充「GPU&异构计算」下的硬件架构对比与算子设计专题。\n4. **集合通信与NVSHMEM知识点缺失**：现有集群通信笔记未覆盖NVSHMEM、ring all-reduce优化对比，需补充「集群通信」下的NVSHMEM原理与集合通信优化笔记。",
+  "summary": "## 今日题目\n1. **KV cache 大小怎么算？**\n2. **通信｜传输进行中 decode 节点挂了，请求怎么处理？**\n3. **怎么知道一个batch应该塞多少token？**\n4. **4机32卡H200训练从FSDP换成HSDP，通信时间会减少多少**\n5. **在小数据量场景使用NVSHMEM，每个GPU直接读取其他GPU的数据，在本地reduce，相比ring all-reduce的好处**\n6. **为什么要做dynamic 调度 \\\\\n固定batchsizze的问题在哪里\\\\\nmax token/token budget 怎么确定\\\\\ndynamic batch 和 packing 是什么关系？只做Dynamic Batch，不做packing行不行;\\\\\n只用token数作为Dynamic Batch的预算，真的能做到阉割计算负载均衡么？\\\\\npadding为什么会造成算力浪费\\\\\n负载均衡到底均衡什么\\\\**\n7. **NPU和GPU的本质区别是**\n8. **多维tensor的transpose kernel怎么设计，是否需要根据i, j的位置设计不同的kernel**\n9. **一条长度10000的序列和是条长度1000的序列，token总数一样，计算量一样么?**\n10. **进程之间那些常见通信方式**\n\n---\n\n## 笔记缺失点总结\n1. **训练并行与FSDP方向笔记严重缺失**：当前无FSDP/HSDP、数据并行、张量并行、流水线并行等训练核心主题笔记，需补充「训练框架/训练并行」目录，重点补FSDP原理、HSDP混合并行通信量计算方法，覆盖第4题相关考点。\n2. **推理调度（Dynamic Batch/Continuous Batching）笔记薄弱**：现有调度目录仅pd.md，缺dynamic batch核心机制、token budget计算、packing与负载均衡关系等内容，需在「推理架构/优化方向/服务吞吐与调度」下补连续批处理与动态调度专题笔记，覆盖第3、6题。\n3. **NPU与GPU架构对比笔记缺失**：现有GPU相关仅CUDA基础，缺NPU架构特性、二者本质差异分析，需在「底层/GPU&异构计算」下补NPU架构与GPU对比笔记，覆盖第7题。\n4. **集合通信进阶（NVSHMEM、故障处理）笔记不足**：现有集群通信多为基础协议，缺NVSHMEM原理、ring all-reduce对比、通信故障处理逻辑，需在「底层/集群通信」下补NVSHMEM与通信容错专题，覆盖第2、5题。",
   "questions": [
     {
       "id": "kb-kv-basic",
@@ -155,5 +155,5 @@
       "file": "computer_basecs/question.md"
     }
   ],
-  "sentAt": 1792195257004
+  "sentAt": 1792195295247
 }
