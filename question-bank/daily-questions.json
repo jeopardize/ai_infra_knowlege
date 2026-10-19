@@ -1,6 +1,6 @@
 {
   "date": "2026-10-19",
-  "summary": "",
+  "summary": "## 今日题目\n1. **KV cache 大小怎么算？**\n2. **通信｜传输进行中 decode 节点挂了，请求怎么处理？**\n3. **多维tensor的transpose kernel怎么设计，是否需要根据i, j的位置设计不同的kernel**\n4. **如果必须用 NCCL 做多卡 KV 传输，你会选择 NCCL 的哪种原语（点对点 send/recv 还是 all-gather 等集合原语）？在什么场景下反而可能比手写 RDMA 更合适？**\n5. **怎么知道一个batch应该塞多少token？**\n6. **为什么要做PD分离|| 再实际部署中，如何调整prefilll和decode的资源比例（比例设置会受到哪些因素影响）**\n7. **4机32卡H200训练从FSDP换成HSDP，通信时间会减少多少**\n8. **如果业务混合了长短 prompt，你会设计怎样的策略来动态决定是否走 PD 分离，而不是一刀切？**\n9. **多GPU通信时NVSHMEM和NVLink的区别**\n10. **GPU matrix transpose使用shared memory的好处**\n\n---\n\n## 笔记缺失点总结\n1. **训练并行体系笔记严重缺失**：FSDP/HSDP、数据并行、张量并行、流水线并行均无对应笔记，需补充 `2 框架/1.2 训练框架/` 下的并行策略与通信优化专题，覆盖 FSDP→HSDP 通信量估算逻辑。\n2. **推理调度与批处理笔记薄弱**：Continuous Batching、batch token数估算、PD分离动态策略无系统整理，需补充 `2 框架/1.1 推理架构/优化方向/服务吞吐与调度/` 下的批处理策略与PD分离调优内容。\n3. **算子与底层硬件细节不足**：transpose kernel设计、shared memory优化、NVSHMEM 原理无对应笔记，需补充 `1 底层/1.1 算子 & kernel/` 下的内存带宽优化与算子实现、`1 底层/1.2 集群通信/` 下的NVSHMEM专题。\n4. **KV Cache 推理侧知识点不全**：多卡KV传输、缓存容量计算、Prefix Caching 未覆盖，需完善 `1 底层/1.4 KV Cache/` 与推理引擎KV管理的跨场景联动笔记。",
   "questions": [
     {
       "id": "kb-kv-basic",
@@ -154,5 +154,6 @@
       "category": "1.0 GPU&异构计算",
       "file": "1 底层/1.0 GPU&异构计算/question.md"
     }
-  ]
+  ],
+  "sentAt": 1792368019931
 }
