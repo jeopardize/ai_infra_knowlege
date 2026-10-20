@@ -1,6 +1,6 @@
 {
   "date": "2026-10-20",
-  "summary": "## 今日题目\n1. **通信｜GPUDirect RDMA 的原理和限制条件是什么？**\n2. **通信｜控制面和数据面为什么必须分离？**\n3. **大模型推理时，“KV 缓存（KV Cache）”是降低计算量、提升响应速度的核心机制。请解释 KV 缓存的存储原理，以及在长序列对话场景（如上下文长度超 4k）中，如何优化 KV 缓存的存储结构以减少内存占用？**\n4. **VLLM中KV Cache过期策略是什么**\n5. **通信｜为什么 NCCL 不适合做 KV 传输？至少说三点。**\n6. **量化（Quantization）是 AI 模型推理加速的关键技术，常见有 INT8、FP16、FP8 等精度。请说明模型量化过程中“校准（Calibration）”步骤的核心作用，以及在量化后出现精度下降时，可采取哪些技术手段（如混合精度、量化感知训练）进行优化？**\n7. **为什么要做dynamic 调度 \\\\\n固定batchsizze的问题在哪里\\\\\nmax token/token budget 怎么确定\\\\\ndynamic batch 和 packing 是什么关系？只做Dynamic Batch，不做packing行不行;\\\\\n只用token数作为Dynamic Batch的预算，真的能做到阉割计算负载均衡么？\\\\\npadding为什么会造成算力浪费\\\\\n负载均衡到底均衡什么\\\\**\n8. **什么 RMSNorm 在大模型里比 LayerNorm 更常见**\n9. **cuda的global memory和shared memory访存分别需要注意什么？**\n10. **讲一下 FlashAttention 的原理**\n\n---\n\n## 笔记缺失点总结\n1. **补 KV Cache 系统性笔记**：当前 KV Cache 主题 3 项中仅 1 项未掌握、2 项未覆盖，长序列优化、过期策略、PagedAttention 等核心点零散分布在 VLLM 笔记中，需在 `1 底层/1.4 KV Cache/` 下补充统一的原理、优化方向、引擎实现对比笔记。\n2. **补推理量化专项笔记**：推理量化 2 项全未覆盖，现有 `paper/Quantization/Quantization.md` 偏论文，需在 `0 LLM/精度/` 下补充校准方法、精度优化手段、推理侧量化落地实践笔记。\n3. **补动态调度与 Continuous Batching 笔记**：Continuous Batching、dynamic batch 与 packing 等 1 项全未覆盖，需在 `2 框架/1.1 推理架构/优化方向/服务吞吐与调度/` 下补充动态调度原理、负载均衡、padding 优化等笔记。\n4. **补集群通信 KV 传输专项笔记**：NCCL 做 KV 传输的缺陷、GPUDirect RDMA 限制等内容在现有 `1 底层/1.2 集群通信/ncll.md` 中缺失，需补充 KV 传输场景下的通信选型与优化笔记。",
+  "summary": "## 今日题目\n1. **通信｜GPUDirect RDMA 的原理和限制条件是什么？**\n2. **通信｜控制面和数据面为什么必须分离？**\n3. **大模型推理时，“KV 缓存（KV Cache）”是降低计算量、提升响应速度的核心机制。请解释 KV 缓存的存储原理，以及在长序列对话场景（如上下文长度超 4k）中，如何优化 KV 缓存的存储结构以减少内存占用？**\n4. **VLLM中KV Cache过期策略是什么**\n5. **通信｜为什么 NCCL 不适合做 KV 传输？至少说三点。**\n6. **量化（Quantization）是 AI 模型推理加速的关键技术，常见有 INT8、FP16、FP8 等精度。请说明模型量化过程中“校准（Calibration）”步骤的核心作用，以及在量化后出现精度下降时，可采取哪些技术手段（如混合精度、量化感知训练）进行优化？**\n7. **为什么要做dynamic 调度 \\\\\n固定batchsizze的问题在哪里\\\\\nmax token/token budget 怎么确定\\\\\ndynamic batch 和 packing 是什么关系？只做Dynamic Batch，不做packing行不行;\\\\\n只用token数作为Dynamic Batch的预算，真的能做到阉割计算负载均衡么？\\\\\npadding为什么会造成算力浪费\\\\\n负载均衡到底均衡什么\\\\**\n8. **什么 RMSNorm 在大模型里比 LayerNorm 更常见**\n9. **cuda的global memory和shared memory访存分别需要注意什么？**\n10. **讲一下 FlashAttention 的原理**\n\n---\n\n## 笔记缺失点总结\n1. **补「推理调度（Continuous Batching / Dynamic Batch / Packing）」笔记**：当前只有 `pd.md` 且内容薄弱，今天第 7 题涉及 dynamic 调度、packing、负载均衡、padding 浪费等 7 个细分问题均未覆盖，需系统整理调度核心逻辑。\n2. **补「推理量化核心细节」笔记**：现有 `Quantization.md` 偏论文综述，缺少校准（Calibration）作用、精度下降优化手段（混合精度、QAT 等）工程化内容，对应第 6 题缺口明显。\n3. **补「集群通信场景适配」笔记**：现有 `集群通信.md`、`nccl.md` 未覆盖 GPUDirect RDMA 原理限制、NCCL 不适合 KV 传输的原因、控制面数据面分离等通信选型问题，对应第 1/2/5 题需补充。\n4. **补「CUDA 访存优化细则」笔记**：现有 `CUDA.md` 未明确 global memory / shared memory 访存注意事项（合并访问、bank conflict 等），对应第 9 题需补硬件访存基础。",
   "questions": [
     {
       "id": "q-1788674761657-da2k",
@@ -154,5 +154,5 @@
       "file": "0 LLM/Attention/question.md"
     }
   ],
-  "sentAt": 1792454460485
+  "sentAt": 1792454499842
 }
