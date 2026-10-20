@@ -1,6 +1,6 @@
 {
   "date": "2026-10-20",
-  "summary": "",
+  "summary": "## 今日题目\n1. **通信｜GPUDirect RDMA 的原理和限制条件是什么？**\n2. **通信｜控制面和数据面为什么必须分离？**\n3. **大模型推理时，“KV 缓存（KV Cache）”是降低计算量、提升响应速度的核心机制。请解释 KV 缓存的存储原理，以及在长序列对话场景（如上下文长度超 4k）中，如何优化 KV 缓存的存储结构以减少内存占用？**\n4. **VLLM中KV Cache过期策略是什么**\n5. **通信｜为什么 NCCL 不适合做 KV 传输？至少说三点。**\n6. **量化（Quantization）是 AI 模型推理加速的关键技术，常见有 INT8、FP16、FP8 等精度。请说明模型量化过程中“校准（Calibration）”步骤的核心作用，以及在量化后出现精度下降时，可采取哪些技术手段（如混合精度、量化感知训练）进行优化？**\n7. **为什么要做dynamic 调度 \\\\\n固定batchsizze的问题在哪里\\\\\nmax token/token budget 怎么确定\\\\\ndynamic batch 和 packing 是什么关系？只做Dynamic Batch，不做packing行不行;\\\\\n只用token数作为Dynamic Batch的预算，真的能做到阉割计算负载均衡么？\\\\\npadding为什么会造成算力浪费\\\\\n负载均衡到底均衡什么\\\\**\n8. **什么 RMSNorm 在大模型里比 LayerNorm 更常见**\n9. **cuda的global memory和shared memory访存分别需要注意什么？**\n10. **讲一下 FlashAttention 的原理**\n\n## 笔记缺失点总结\n1. **推理调度方向**：`2 框架/1.1 推理架构/优化方向/服务吞吐与调度` 下仅 pd.md，缺少 Dynamic Batch / Continuous Batching、Packing、负载均衡等核心主题笔记，需补调度策略与算力浪费分析内容。\n2. **KV Cache 方向**：`1 底层/1.4 KV Cache` 和 vLLM KV 管理笔记覆盖不足，缺少长序列优化（如 GQA/MQA、量化 KV、Prefix Caching）、过期策略等内容，需补全存储优化与生命周期管理。\n3. **推理量化方向**：仅有 paper 层 Quantization 笔记，缺少推理侧量化（INT8/FP8 校准、混合精度、量化感知训练）的工程化总结，需在 `2 框架/1.1 推理架构/优化方向` 下补量化专题。\n4. **CUDA 硬件访存方向**：`1 底层/1.0 GPU&异构计算/CUDA.md` 缺乏 global/shared memory 访存优化细节（合并访存、bank conflict 等），需补 GPU 内存层次与访存优化要点。",
   "questions": [
     {
       "id": "q-1788674761657-da2k",
@@ -153,5 +153,6 @@
       "category": "Attention",
       "file": "0 LLM/Attention/question.md"
     }
-  ]
+  ],
+  "sentAt": 1792454420479
 }
