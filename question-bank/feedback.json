@@ -4,5 +4,11 @@
     "content": "markdown文本 highlight 标记 无法生效 ==xxx===，还有组合标记生效highlight加粗字体",
     "createdAt": 1792550171645,
     "status": "open"
+  },
+  {
+    "id": "fb_1792550956382_7izoqq",
+    "content": "发生分屏的时候，markdown的最宽宽度就应该变成分屏后的宽度",
+    "createdAt": 1792550956382,
+    "status": "open"
   }
 ]
