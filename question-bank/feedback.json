@@ -28,5 +28,11 @@
     "content": "笔记保存默认5s一次，笔记侧边目录栏宽度可以调节",
     "createdAt": 1792633008216,
     "status": "open"
+  },
+  {
+    "id": "fb_1792635841315_mvcake",
+    "content": "无法复制图片上传到markdown文件，我需要复制过来，然后默认图片存在当前路径下的./images 下，图片名称更改为我后续修改的",
+    "createdAt": 1792635841315,
+    "status": "open"
   }
 ]
