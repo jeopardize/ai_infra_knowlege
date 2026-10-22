@@ -40,5 +40,11 @@
     "content": "笔记库中图片无法预览",
     "createdAt": 1792635951505,
     "status": "open"
+  },
+  {
+    "id": "fb_1792638767402_lp8o87",
+    "content": "markdown文档缺少代码块的输入，支持多种语法（memaid，js，json，python，cpp，java）",
+    "createdAt": 1792638767402,
+    "status": "open"
   }
 ]
