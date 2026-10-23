@@ -1,6 +1,6 @@
 {
   "date": "2026-10-23",
-  "summary": "",
+  "summary": "## 今日题目\n1. **KV cache 大小怎么算？**\n2. **通信｜传输进行中 decode 节点挂了，请求怎么处理？**\n3. **进程之间那些常见通信方式**\n4. **NPU和GPU的本质区别是**\n5. **投机采样的加速比分析公式，MoE模型的投机采样遇到的性能问题**\n6. **讲一下 FlashAttention 的原理**\n7. **nccl中的通信源语有哪些？all-reduce参数更新一次参数需要几次通信？**\n8. **为什么要做dynamic 调度 \\\\\n固定batchsizze的问题在哪里\\\\\nmax token/token budget 怎么确定\\\\\ndynamic batch 和 packing 是什么关系？只做Dynamic Batch，不做packing行不行;\\\\\n只用token数作为Dynamic Batch的预算，真的能做到阉割计算负载均衡么？\\\\\npadding为什么会造成算力浪费\\\\\n负载均衡到底均衡什么\\\\**\n9. **CP上下文并行的通信量该如何分析计算**\n10. **在 AI Infra 底层硬件适配中，需考虑不同芯片架构（如 x86、ARM、RISC-V）的指令集差异。请以“卷积算子”为例，说明如何设计跨架构兼容的算子实现方案，同时兼顾不同硬件的性能优势？**\n\n---\n\n## 笔记缺失点总结\n1. **训练并行体系（DP/TP/PP/ZeRO/FSDP）完全空白**：当前笔记仅涉及推理并行，训练侧所有并行策略均未覆盖。建议补「训练框架/并行策略」方向笔记，覆盖数据并行、张量并行、流水线并行、ZeRO 与 FSDP 的原理与通信量分析。\n2. **NCCL 集合通信掌握为 0**：虽有 nccl 笔记文件，但 2 项核心知识点全部未覆盖。建议补「集群通信/NCCL」方向笔记，重点整理通信原语分类、all-reduce 等常见算子的通信次数与带宽计算。\n3. **推理调度核心（Continuous Batching/PagedAttention）缺失**：dynamic 调度、padding 浪费、负载均衡等题目对应知识点未系统整理。建议补「推理架构/服务吞吐与调度」方向笔记，补充 Continuous Batching、PagedAttention、packing 与 token budget 设计逻辑。\n4. **硬件架构与性能分析基础薄弱**：NPU/GPU 差异、FlashAttention 原理、跨架构算子适配等题目缺乏底层支撑。建议补「GPU&异构计算」方向笔记，补充 GPU 架构基础、Roofline 模型、FlashAttention 计算/访存优化逻辑。",
   "questions": [
     {
       "id": "kb-kv-basic",
@@ -155,5 +155,6 @@
       "category": "其他",
       "file": "data/other_question.md"
     }
-  ]
+  ],
+  "sentAt": 1792715078995
 }
