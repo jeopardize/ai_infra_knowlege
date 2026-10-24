@@ -54,5 +54,11 @@
     "status": "done",
     "processedAt": 1792807259171,
     "note": "v1.3.1: 笔记编辑5s自动保存；粘贴剪贴板图片上传到笔记目录images/下(名称可自定义)；目录树图片可点击预览+markdown相对路径图片渲染；编辑器一键插入多语言代码块(js/ts/json/python/cpp/java/mermaid等)+语法高亮+mermaid图表渲染；另修复部署OOM(mermaid改CDN加载+构建前停服)"
+  },
+  {
+    "id": "fb_1792823339632_bz2zml",
+    "content": "1。类似代码块插入，同步做一个表格插入，可以输入几行几列，2. 图片插入后在markdown中显示过大，设置大小可调节功能",
+    "createdAt": 1792823339632,
+    "status": "open"
   }
 ]

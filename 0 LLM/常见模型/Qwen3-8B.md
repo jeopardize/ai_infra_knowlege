@@ -13,3 +13,6 @@ vocab_size｜151936
 rope_theta｜1,000,000
 max_position_embeddings｜40960
 torch_dtype｜bfloat16
+
+![qwen3_8B_architecture](images/qwen3_8B_architecture.png)
+
