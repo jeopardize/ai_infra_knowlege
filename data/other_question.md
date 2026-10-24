@@ -76,6 +76,25 @@ If you were to adapt the Ampere architecture operators to the Hopper architectur
 
 
 <!--/Q-->
+<!--Q id=q-1780887987263-jrdf ts=1791275996921-->
+
+**问题 (zh)**
+
+量化（Quantization）是 AI 模型推理加速的关键技术，常见有 INT8、FP16、FP8 等精度。请说明模型量化过程中“校准（Calibration）”步骤的核心作用，以及在量化后出现精度下降时，可采取哪些技术手段（如混合精度、量化感知训练）进行优化？
+
+**问题 (en)**
+
+Quantization is a key technology for accelerating AI model inference, with common precision levels such as INT8, FP16, and FP8. Please explain the core role of the "calibration" step in the model quantization process, and what techniques (such as mixed precision or quantization-aware training) can be used to optimize precision when it decreases after quantization.
+
+**答案 (zh)**
+
+
+
+**答案 (en)**
+
+
+
+<!--/Q-->
 <!--Q id=q-1780887910836-q533 ts=1791275996963-->
 
 **问题 (zh)**
@@ -104,25 +123,6 @@ In AI Infrastructure hardware adaptation, the instruction set differences of dif
 **问题 (en)**
 
 Please explain the core workflow of "AI compilation optimization" (such as TVM, TensorRT), compare the advantages and disadvantages of "template-based compilation" and "automatic search compilation", and design a compilation strategy when dealing with heterogeneous hardware (CPU+GPU+NPU).
-
-**答案 (zh)**
-
-
-
-**答案 (en)**
-
-
-
-<!--/Q-->
-<!--Q id=q-1780887987263-jrdf ts=1791275996921-->
-
-**问题 (zh)**
-
-量化（Quantization）是 AI 模型推理加速的关键技术，常见有 INT8、FP16、FP8 等精度。请说明模型量化过程中“校准（Calibration）”步骤的核心作用，以及在量化后出现精度下降时，可采取哪些技术手段（如混合精度、量化感知训练）进行优化？
-
-**问题 (en)**
-
-Quantization is a key technology for accelerating AI model inference, with common precision levels such as INT8, FP16, and FP8. Please explain the core role of the "calibration" step in the model quantization process, and what techniques (such as mixed precision or quantization-aware training) can be used to optimize precision when it decreases after quantization.
 
 **答案 (zh)**
 
