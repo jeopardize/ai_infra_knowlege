@@ -1,5 +1,24 @@
 
 
+<!--Q id=q-1780887385961-ocf5 ts=1792834370721-->
+
+**问题 (zh)**
+
+MTP和Eagle的区别，MTP head的prefill过程，MTP head的kv cache变化
+
+**问题 (en)**
+
+The differences between MTP and Eagle, the MTP head prefill process, and changes to the MTP head's key-value cache.
+
+**答案 (zh)**
+
+
+
+**答案 (en)**
+
+
+
+<!--/Q-->
 <!--Q id=q-1791460580663-2c36vg ts=1791460580663-->
 
 **问题 (zh)**
