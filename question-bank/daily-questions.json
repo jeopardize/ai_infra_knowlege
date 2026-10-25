@@ -1,159 +1,158 @@
 {
-  "date": "2026-10-24",
-  "summary": "## 今日题目\n1. **通信｜为什么 NCCL 不适合做 KV 传输？至少说三点。**\n2. **大模型推理时，“KV 缓存（KV Cache）”是降低计算量、提升响应速度的核心机制。请解释 KV 缓存的存储原理，以及在长序列对话场景（如上下文长度超 4k）中，如何优化 KV 缓存的存储结构以减少内存占用？**\n3. **通信｜控制面和数据面为什么必须分离？**\n4. **VLLM中KV Cache过期策略是什么**\n5. **通信｜GPUDirect RDMA 的原理和限制条件是什么？**\n6. **操作系统中，MP和read有什么区别**\n7. **将Ampere架构的算子适配到Hopper架构的卡上，你会对哪些地方进行升级改造？**\n8. **GPU matrix transpose使用shared memory的好处**\n9. **EP专家并行场景下通信开销怎么算**\n10. **MTP和Eagle的区别，MTP head的prefill过程，MTP head的kv cache变化**\n\n## 笔记缺失点总结\n1. **KV Cache 核心内容缺口大**：目前仅 1 项未掌握、2 项未覆盖，需补 `1 底层/1.4 KV Cache/` 下的长序列存储优化、过期策略、Prefix Caching 等笔记，优先对应今日第 2、4 题。\n2. **集群通信细节薄弱**：NCCL 特性、GPUDirect RDMA、控制面/数据面分离等内容笔记不深入，需补 `1 底层/1.2 集群通信/` 下的 NCCL 适用场景、RDMA 原理、面分离设计等内容，对应今日第 1、3、5 题。\n3. **GPU 架构与算子适配空白**：Ampere→Hopper 架构差异、shared memory 算子优化无对应笔记，需补 `1 底层/1.0 GPU&异构计算/` 和 `1 底层/1.1 算子 & kernel/` 下的架构对比、共享内存优化内容，对应今日第 7、8 题。\n4. **推理并行与投机解码细节不足**：EP 专家并行通信计算、MTP/Eagle 投机解码差异无系统笔记，需补 `2 框架/1.1 推理架构/推理并行/` 和 `2 框架/1.1 推理架构/优化方向/投机解码/` 下的内容，对应今日第 9、10 题。",
+  "date": "2026-10-25",
+  "summary": "",
   "questions": [
     {
-      "id": "q-1788674761657-eiha",
-      "createdAt": 1791275996836,
-      "updatedAt": 1791275996836,
-      "question": {
-        "zh": "通信｜为什么 NCCL 不适合做 KV 传输？至少说三点。",
-        "en": ""
-      },
-      "answer": {
-        "zh": "",
-        "en": ""
-      },
-      "category": "集群通信优化",
-      "file": "2 框架/1.1 推理架构/优化方向/集群通信优化/question.md"
-    },
-    {
-      "id": "q-1780884756742-pal8",
-      "createdAt": 1791276606895,
-      "updatedAt": 1791276606895,
+      "id": "kb-kv-basic",
+      "createdAt": 1791276643901,
+      "updatedAt": 1791276643901,
       "topicId": "kv-cache",
       "question": {
-        "zh": "大模型推理时，“KV 缓存（KV Cache）”是降低计算量、提升响应速度的核心机制。请解释 KV 缓存的存储原理，以及在长序列对话场景（如上下文长度超 4k）中，如何优化 KV 缓存的存储结构以减少内存占用？",
-        "en": "In large model inference, the \"KV cache\" is a core mechanism for reducing computational load and improving response speed. Please explain the storage principle of the KV cache, and how to optimize the storage structure of the KV cache to reduce memory usage in long-sequence dialogue scenarios (such as context length exceeding 4k)."
+        "zh": "KV cache 大小怎么算？",
+        "en": "How do you calculate KV cache size?"
       },
       "answer": {
-        "zh": "- KV Cache 存储的是每层每个 head 的历史 K、V 张量，用于避免自回归解码时的重复计算。\n\n- 它通常存放在 GPU HBM 中，但由于显存有限，长序列下会出现严重内存压力。\n\n- 在工程层面，PageAttention 通过 block table 将 KV Cache 分页管理，解决连续分配带来的内外碎片问题。\n- 在算法层面，可以通过量化（INT8/4）、GQA/MQA、滑动窗口注意力等手段直接缩小 KV Cache 体积。\n- 在系统层面，可以引入 HBM–DRAM–SSD 的多级缓存池，结合 LRU 等策略动态迁移数据，从而在超长上下文（>4k）场景中显著降低显存占用。",
-        "en": ""
+        "zh": "自回归生成时，每生成一个新 token，attention 需要它对**之前所有 token** 的 Q·K^T。\n\n如果不缓存，每步都要重算前面所有 token 的 K/V → 复杂度 `O(L^2)` 每步、`O(L^3)` 总；\n缓存后每步只需算新 token 的 K/V 并和缓存拼接 → `O(L)` 每步、`O(L^2)` 总。\n\n代价是显存：cache 大小 = `2 (K+V) × num_layers × num_heads × head_dim × seq_len × batch × bytes`。LLaMA-7B 在 2048 长度下单 batch 约 **1GB**。",
+        "en": "In autoregressive generation, every new token's attention needs to compute Q·Kᵀ against **all previous tokens**.\n\nWithout caching, every step re-derives K/V for every prior token → `O(L²)` per step, `O(L³)` total.\nWith caching, every step only computes the new token's K/V and concatenates with the cache → `O(L)` per step, `O(L²)` total.\n\nThe trade-off is memory: cache size = `2 (K+V) × num_layers × num_heads × head_dim × seq_len × batch × bytes`. For LLaMA-7B at length 2048 with batch 1, that's about **1 GB**."
       },
       "category": "1.4 KV Cache",
       "file": "1 底层/1.4 KV Cache/question.md"
     },
     {
-      "id": "q-1788674761659-87uf",
-      "createdAt": 1791275996637,
-      "updatedAt": 1791275996637,
+      "id": "q-1788674761658-kzt9",
+      "createdAt": 1791722218665,
+      "updatedAt": 1791722218665,
       "question": {
-        "zh": "通信｜控制面和数据面为什么必须分离？",
-        "en": "Communications | Why must the control plane and data plane be separated?"
+        "zh": "通信｜传输进行中 decode 节点挂了，请求怎么处理？",
+        "en": "Communication | If a decode node crashes during transmission, how should the request be handled?"
       },
       "answer": {
-        "zh": "",
+        "zh": "decode节点挂了之后，需要看p侧处理的逻辑 1. 如果p侧的处理逻辑是，他会保存kv cache全层的信息直到pd传输完成后再将内容废弃的话，那么此时如果发生decode节点挂了，是可以从p重新拉取一次kv cache ，之后重新进行推理；2. 如果p的是传一层废弃一层的话，那么当decode节点挂了，就需要abort 他之后，并同步告知p，p会讲该请求从running 置换到waiting中，直接raise出去",
         "en": ""
       },
-      "category": "集群通信优化",
-      "file": "2 框架/1.1 推理架构/优化方向/集群通信优化/question.md"
+      "category": "4 卡间通信开销大",
+      "file": "2 框架/1.1 推理架构/优化方向/4 卡间通信开销大/question.md"
     },
     {
-      "id": "q-1781537383942-i2pf",
-      "createdAt": 1791275996857,
-      "updatedAt": 1791275996857,
-      "question": {
-        "zh": "VLLM中KV Cache过期策略是什么",
-        "en": ""
-      },
-      "answer": {
-        "zh": "",
-        "en": ""
-      },
-      "category": "VLLM",
-      "file": "2 框架/1.1 推理架构/推理引擎/VLLM/question.md"
-    },
-    {
-      "id": "q-1788674761657-da2k",
-      "createdAt": 1791275996813,
-      "updatedAt": 1791275996813,
-      "question": {
-        "zh": "通信｜GPUDirect RDMA 的原理和限制条件是什么？",
-        "en": "Communication | What are the principles and limitations of GPUDirect RDMA?"
-      },
-      "answer": {
-        "zh": "",
-        "en": ""
-      },
-      "category": "集群通信优化",
-      "file": "2 框架/1.1 推理架构/优化方向/集群通信优化/question.md"
-    },
-    {
-      "id": "q-1791460734566-oj3m9v",
-      "createdAt": 1791460734566,
-      "updatedAt": 1791460734566,
-      "question": {
-        "zh": "操作系统中，MP和read有什么区别",
-        "en": ""
-      },
-      "answer": {
-        "zh": "",
-        "en": ""
-      },
-      "category": "computer_basecs",
-      "file": "computer_basecs/question.md"
-    },
-    {
-      "id": "q-1780887893929-yl18",
-      "createdAt": 1791275996971,
-      "updatedAt": 1791275996971,
-      "question": {
-        "zh": "将Ampere架构的算子适配到Hopper架构的卡上，你会对哪些地方进行升级改造？",
-        "en": "If you were to adapt the Ampere architecture operators to the Hopper architecture card, what upgrades or modifications would you make?"
-      },
-      "answer": {
-        "zh": "",
-        "en": ""
-      },
-      "category": "其他",
-      "file": "data/other_question.md"
-    },
-    {
-      "id": "q-1780887810461-n831",
-      "createdAt": 1791425129827,
-      "updatedAt": 1791425129827,
-      "question": {
-        "zh": "GPU matrix transpose使用shared memory的好处",
-        "en": "The benefits of using shared memory in GPU matrix transpose"
-      },
-      "answer": {
-        "zh": "",
-        "en": ""
-      },
-      "category": "1.0 GPU&异构计算",
-      "file": "1 底层/1.0 GPU&异构计算/question.md"
-    },
-    {
-      "id": "q-1791460215543-9evcyk",
-      "createdAt": 1791460215543,
-      "updatedAt": 1791460215543,
-      "question": {
-        "zh": "EP专家并行场景下通信开销怎么算",
-        "en": ""
-      },
-      "answer": {
-        "zh": "",
-        "en": ""
-      },
-      "category": "集群通信优化",
-      "file": "2 框架/1.1 推理架构/优化方向/集群通信优化/question.md"
-    },
-    {
-      "id": "q-1780887385961-ocf5",
-      "createdAt": 1791275997107,
-      "updatedAt": 1791275997107,
+      "id": "q-1780887362088-eomt",
+      "createdAt": 1791361799043,
+      "updatedAt": 1791361799043,
       "topicId": "speculative-decoding",
       "question": {
-        "zh": "MTP和Eagle的区别，MTP head的prefill过程，MTP head的kv cache变化",
-        "en": "The differences between MTP and Eagle, the MTP head prefill process, and changes to the MTP head's key-value cache."
+        "zh": "投机采样的加速比分析公式，MoE模型的投机采样遇到的性能问题",
+        "en": "Speedup analysis formula for speculative sampling, performance issues encountered in speculative sampling of the MoE model."
       },
       "answer": {
         "zh": "",
         "en": ""
       },
-      "category": "其他",
-      "file": "data/other_question.md"
+      "category": "1 自回归串行延迟高",
+      "file": "2 框架/1.1 推理架构/优化方向/1 自回归串行延迟高/question.md"
+    },
+    {
+      "id": "q-1791458326920-hqz7m1",
+      "createdAt": 1791458326920,
+      "updatedAt": 1791458326920,
+      "question": {
+        "zh": "怎么知道一个batch应该塞多少token？",
+        "en": ""
+      },
+      "answer": {
+        "zh": "",
+        "en": ""
+      },
+      "category": "工程问题",
+      "file": "工程问题/question.md"
+    },
+    {
+      "id": "q-1788674761658-t3um",
+      "createdAt": 1791275996758,
+      "updatedAt": 1791275996758,
+      "question": {
+        "zh": "通信｜EP（专家并行）的 AllToAll 和 TP 的 AllReduce，通信量和频率差多少？对网络要求的区别？",
+        "en": "Communications | What is the difference in communication volume and frequency between AllToAll in EP (Expert Parallelism) and AllReduce in TP? What are the differences in network requirements?"
+      },
+      "answer": {
+        "zh": "",
+        "en": ""
+      },
+      "category": "4 卡间通信开销大",
+      "file": "2 框架/1.1 推理架构/优化方向/4 卡间通信开销大/question.md"
+    },
+    {
+      "id": "q-1791361294217-sl0prx",
+      "createdAt": 1791361765577,
+      "updatedAt": 1791361765577,
+      "question": {
+        "zh": "如果必须用 NCCL 做多卡 KV 传输，你会选择 NCCL 的哪种原语（点对点 send/recv 还是 all-gather 等集合原语）？在什么场景下反而可能比手写 RDMA 更合适？",
+        "en": ""
+      },
+      "answer": {
+        "zh": "",
+        "en": ""
+      },
+      "category": "1.2 集群通信",
+      "file": "1 底层/1.2 集群通信/question.md"
+    },
+    {
+      "id": "q-1788674761659-72wg",
+      "createdAt": 1791275996695,
+      "updatedAt": 1791275996695,
+      "question": {
+        "zh": "通信｜全局 KV 索引该放哪？router 预测 vs worker 上报，你选哪个，为什么？",
+        "en": "Communication | Where should the global KV index be placed? Would you choose router prediction or worker reporting, and why?"
+      },
+      "answer": {
+        "zh": "",
+        "en": ""
+      },
+      "category": "4 卡间通信开销大",
+      "file": "2 框架/1.1 推理架构/优化方向/4 卡间通信开销大/question.md"
+    },
+    {
+      "id": "q-1788674761658-ycjt",
+      "createdAt": 1791275996779,
+      "updatedAt": 1791275996779,
+      "question": {
+        "zh": "通信｜同节点 PD 能否用 NVLink？K8s 下为什么不行？",
+        "en": ""
+      },
+      "answer": {
+        "zh": "",
+        "en": ""
+      },
+      "category": "4 卡间通信开销大",
+      "file": "2 框架/1.1 推理架构/优化方向/4 卡间通信开销大/question.md"
+    },
+    {
+      "id": "q-1780887481850-855v",
+      "createdAt": 1791425068046,
+      "updatedAt": 1791425068046,
+      "question": {
+        "zh": "在 AI 训练场景中，分布式训练常面临通信瓶颈问题。请说明 AllReduce、Broadcast、ReduceScatter 这三种核心通信算子的适用场景差异，并分析在千亿参数大模型训练中，如何选择通信策略以降低延迟、提升吞吐量？",
+        "en": "In AI training scenarios, distributed training often faces communication bottlenecks. Please explain the differences in applicable scenarios for the three core communication operators: AllReduce, Broadcast, and ReduceScatter. Furthermore, analyze how to choose a communication strategy to reduce latency and improve throughput when training a large model with hundreds of billions of parameters."
+      },
+      "answer": {
+        "zh": "",
+        "en": ""
+      },
+      "category": "4 卡间通信开销大",
+      "file": "2 框架/1.1 推理架构/优化方向/4 卡间通信开销大/question.md"
+    },
+    {
+      "id": "q-1780901766052-zma3",
+      "createdAt": 1791362164614,
+      "updatedAt": 1791362164614,
+      "question": {
+        "zh": "讲一下 FlashAttention 的原理",
+        "en": "Let me explain the principle of FlashAttention."
+      },
+      "answer": {
+        "zh": "FlashAttention 的核心不是“更快算 attention”，而是“避免把完整 attention matrix 落到显存里”。它通过分块计算、在线 softmax 和重计算，减少 HBM 访问量，把很多中间结果保留在更快的片上存储里。这样做的本质是用更少的内存带宽换更好的速度和更低的显存占用。长序列场景下，它的收益非常明显，因为传统 attention 的瓶颈往往就是读写中间矩阵。\n除此之外，flash attention v1，v2，v3 分别都解决了不同的问题",
+        "en": ""
+      },
+      "category": "Attention",
+      "file": "0 LLM/Attention/question.md"
     }
-  ],
-  "sentAt": 1792800020006
+  ]
 }
