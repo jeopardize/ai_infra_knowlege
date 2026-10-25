@@ -1,6 +1,6 @@
 {
   "date": "2026-10-25",
-  "summary": "",
+  "summary": "## 今日题目\n1. **KV cache 大小怎么算？**\n2. **通信｜传输进行中 decode 节点挂了，请求怎么处理？**\n3. **投机采样的加速比分析公式，MoE模型的投机采样遇到的性能问题**\n4. **怎么知道一个batch应该塞多少token？**\n5. **通信｜EP（专家并行）的 AllToAll 和 TP 的 AllReduce，通信量和频率差多少？对网络要求的区别？**\n6. **如果必须用 NCCL 做多卡 KV 传输，你会选择 NCCL 的哪种原语（点对点 send/recv 还是 all-gather 等集合原语）？在什么场景下反而可能比手写 RDMA 更合适？**\n7. **通信｜全局 KV 索引该放哪？router 预测 vs worker 上报，你选哪个，为什么？**\n8. **通信｜同节点 PD 能否用 NVLink？K8s 下为什么不行？**\n9. **在 AI 训练场景中，分布式训练常面临通信瓶颈问题。请说明 AllReduce、Broadcast、ReduceScatter 这三种核心通信算子的适用场景差异，并分析在千亿参数大模型训练中，如何选择通信策略以降低延迟、提升吞吐量？**\n10. **讲一下 FlashAttention 的原理**\n\n## 笔记缺失点总结\n1. **补训练分布式并行笔记**：训练侧数据并行、张量并行、流水线并行、ZeRO/FSDP 均完全未覆盖，而今日第5、9题涉及 TP 通信、训练通信策略，需先补 `2 框架/1.2 训练框架/` 下的并行策略与通信优化内容。\n2. **补推理批处理与投机解码笔记**：Continuous Batching、投机解码均未覆盖，对应今日第3、4题（batch 容量、投机采样加速比），需补 `2 框架/1.1 推理架构/优化方向/1 自回归串行延迟高/` 与批处理相关笔记。\n3. **补 NCCL 与 KV Cache 深度笔记**：KV Cache 仅 1 项未掌握、2 项未覆盖，NCCL 训练侧完全未覆盖，对应今日第1、6、7题，需补 `1 底层/1.2 集群通信/nccl.md` 与 `1 底层/1.4 KV Cache/` 深度内容。\n4. **补 K8s GPU 调度笔记**：K8s 与 GPU 调度完全未覆盖，对应今日第8题（K8s 下 NVLink 限制），需补 `computer_base/5 云原生/K8s.md` 中 GPU 调度与设备隔离部分。",
   "questions": [
     {
       "id": "kb-kv-basic",
@@ -154,5 +154,6 @@
       "category": "Attention",
       "file": "0 LLM/Attention/question.md"
     }
-  ]
+  ],
+  "sentAt": 1792886426870
 }
