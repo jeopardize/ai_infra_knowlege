@@ -22,4 +22,5 @@
 
 3. 建联完成后，应用程序通过RDMA以工作请求（work request，WR）的形式下发post远端访问请求，报文如[@fig:ROCEv2_write]所示
 ![Rocev2_write](images/Rocev2_write.png){#fig:ROCEv2_write}
+对应通信流程如图[@fig:ROCEv2_process]所示，
 
