@@ -365,28 +365,6 @@
       "quote": "tant building block of modern\ndatacenter network (DCN) infrastructure given\nthe merits of kernel bypass, zero memory copy\ntechniques and low CPU overhead. However, the\nincreasingly stringent performance requirements\nof both ultralow latency and high throughput\nfrom the booming datacenter applications raise\nsubstantial challenges to the widespread adop-\ntion of RDMA in large-scale DCNs. This article\nidentifies and discusses specific challenges facing\nRDMA deployment, including congestion control,\nmulti-path transmission and scalability issues. We\nprovide a comprehensive review of the efforts\nundertaken over the past decade to enhance\nRDMA performance, highlighting the key innova-\ntions of these RDMA transports. Furthermore, we\nexplore the insights behind these RDMA transport\nschemes and outline the future research opportu-\nnities with the hope to inspire new interests and\nshed light on the following research in this field.\nI ntroductIon\nAs the datacenter network (DCN) bandwidth contin-\nuous to increase, from 10Gbps to 100Gbps or even\nhigher, network transmission becomes the bottle-\nneck for datacenter applications [2], [3]. Specifically,\ntraditional kernel TCP cannot meet the demand of",
       "note": "",
       "createdAt": 1793083050477
-    },
-    {
-      "id": "mvqbcuug-rzjyyu",
-      "page": 1,
-      "rects": [
-        {
-          "x": 0.2681999719730942,
-          "y": 0.24420451075339178,
-          "w": 0.3056777475126121,
-          "h": 0.016193342930680976
-        },
-        {
-          "x": 0.2476994581464873,
-          "y": 0.25690354665619686,
-          "w": 0.11566390192918535,
-          "h": 0.016193342930680976
-        }
-      ],
-      "color": "#fde047",
-      "quote": "Remote Direct Memory Access (RDMA) has\nbecome an impo",
-      "note": "",
-      "createdAt": 1793083058729
     }
   ]
 }
