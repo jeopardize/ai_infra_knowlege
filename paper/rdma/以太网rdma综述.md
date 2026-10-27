@@ -20,5 +20,6 @@
 - 单边通信原语 READ，WRITE，ATOMIC则不涉及远端CPU参与，可以获得更低的延迟和更高的带宽
 > 此外，SEND 和 WRITE可以携带额外的4B的数据，改数据不直接写入内存，而是作为状态信息返回给上层应用（CPU参与）
 
-3. 建联完成后，应用程序通过RDMA以工作请求（work request，WR）的形式下发post远端访问请求，报文如下入所示
-![ROCEv2 Write报文](./images/sample.png){ROCEv2 Write报文}
+3. 建联完成后，应用程序通过RDMA以工作请求（work request，WR）的形式下发post远端访问请求，报文如[@fig::ROCEv2_write]所示
+![Rocev2_write](images/Rocev2_write.png){#fig:ROCEv2_write}
+
