@@ -11,7 +11,7 @@
 
 
 # RDMA 传输机制
-## 基本信息
+
 1. rdma 建立连接，rdma 允许本端用户太应用程序快速写远端内存。因此，在正式通信之前，rdma本端引用程序需要首先申请注册内存区域（memory region， MR）用于存放收发数据，并与通信远端进行建链协商，提前获取远端主机信息和内存访问权限等（需要cpu参与）
 > iWARP 和 ROCE v1 基于 CM（communication manager）接口建联，ROCE v2 同时机遇 CM 接口和Socket接口2中建链方式
 
@@ -22,5 +22,12 @@
 
 3. 建联完成后，应用程序通过RDMA以工作请求（work request，WR）的形式下发post远端访问请求，报文如[@fig:ROCEv2_write]所示
 ![Rocev2_write](images/Rocev2_write.png){#fig:ROCEv2_write}
-对应通信流程如图[@fig:ROCEv2_process]所示，
+对应通信流程如图[@fig:ROCEv2_process]所示，对于应用程序下发的 WR ， 由用户态驱动将其转化为工作队列元素 （ work queue element ， WQE ） 并放入队列对 （ queue pair ， QP ） 中 （ 图 2 中① ） . QP 是 RDMA 双端通信的基本单位 [57] ， 由发送队列 （ send queue ， SQ ） 和接收队列 （ receive queue ， RQ ） 组成 ， 由 SQ 接收应用程序下发的 SEND ， READ ， WRITE 等请求 ， 由 RQ 接收应用程序下发的 RECV （ 对应 SEND 请求 ） . 对于 RDMAWRITE 操作 ， 由网卡在获取 RDMA 传输请求 （ 图 2 中② ） 后取出本端内存数据 （ 图 2 中③ ） 并执行远端内存写入 （ 图 2 中④ ） .
+![Rocev2_process](images/Rocev2_process.png)
+
+4. 
+
+# RDMA 网卡架构
+
+
 
