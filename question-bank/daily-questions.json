@@ -1,75 +1,60 @@
 {
-  "date": "2026-10-26",
-  "summary": "## 今日题目\n1. **通信｜控制面和数据面为什么必须分离？**\n2. **VLLM中KV Cache过期策略是什么**\n3. **通信｜为什么 NCCL 不适合做 KV 传输？至少说三点。**\n4. **大模型推理时，“KV 缓存（KV Cache）”是降低计算量、提升响应速度的核心机制。请解释 KV 缓存的存储原理，以及在长序列对话场景（如上下文长度超 4k）中，如何优化 KV 缓存的存储结构以减少内存占用？**\n5. **通信｜GPUDirect RDMA 的原理和限制条件是什么？**\n6. **操作系统中，MP和read有什么区别**\n7. **什么 RMSNorm 在大模型里比 LayerNorm 更常见**\n8. **操作系统中，MP和read有什么区别**\n9. **将Ampere架构的算子适配到Hopper架构的卡上，你会对哪些地方进行升级改造？**\n10. **一条长度10000的序列和是条长度1000的序列，token总数一样，计算量一样么?**\n\n---\n\n## 笔记缺失点总结\n1. **KV Cache 方向笔记不完整**：仅覆盖 1 项（共 3 项），缺失长序列存储优化、过期策略等内容，建议补充 `1 底层/1.4 KV Cache/` 下的长序列优化、淘汰策略相关笔记，并完善 vLLM KV 管理细节。\n2. **GPU 架构方向完全空白**：Ampere→Hopper 算子适配类题目无对应笔记，建议在 `1 底层/1.0 GPU&异构计算/` 下新增 GPU 架构演进（Ampere/Hopper 特性对比）、硬件指令集适配相关内容。\n3. **操作系统基础笔记薄弱**：MP 与 read 区别、内存映射类知识点无明确专项记录，建议在 `computer_base/0 操作系统/` 中补充内存映射（mmap）、IO 系统调用对比的专项笔记。\n4. **集合通信进阶内容缺失**：NCCL 适用场景、GPUDirect RDMA 原理限制等内容现有笔记覆盖不足，建议补充 `1 底层/1.2 集群通信/` 下的 NCCL 语义限制、GPUDirect RDMA 专项笔记。",
+  "date": "2026-10-27",
+  "summary": "",
   "questions": [
     {
-      "id": "q-1788674761659-87uf",
-      "createdAt": 1791275996637,
-      "updatedAt": 1791275996637,
-      "question": {
-        "zh": "通信｜控制面和数据面为什么必须分离？",
-        "en": "Communications | Why must the control plane and data plane be separated?"
-      },
-      "answer": {
-        "zh": "",
-        "en": ""
-      },
-      "category": "4 卡间通信开销大",
-      "file": "2 框架/1.1 推理架构/优化方向/4 卡间通信开销大/question.md"
-    },
-    {
-      "id": "q-1781537383942-i2pf",
-      "createdAt": 1791275996857,
-      "updatedAt": 1791275996857,
-      "question": {
-        "zh": "VLLM中KV Cache过期策略是什么",
-        "en": ""
-      },
-      "answer": {
-        "zh": "",
-        "en": ""
-      },
-      "category": "VLLM",
-      "file": "2 框架/1.1 推理架构/推理引擎/VLLM/question.md"
-    },
-    {
-      "id": "q-1788674761657-eiha",
-      "createdAt": 1791275996836,
-      "updatedAt": 1791275996836,
-      "question": {
-        "zh": "通信｜为什么 NCCL 不适合做 KV 传输？至少说三点。",
-        "en": ""
-      },
-      "answer": {
-        "zh": "",
-        "en": ""
-      },
-      "category": "4 卡间通信开销大",
-      "file": "2 框架/1.1 推理架构/优化方向/4 卡间通信开销大/question.md"
-    },
-    {
-      "id": "q-1780884756742-pal8",
-      "createdAt": 1791276606895,
-      "updatedAt": 1791276606895,
+      "id": "kb-kv-basic",
+      "createdAt": 1791276643901,
+      "updatedAt": 1791276643901,
       "topicId": "kv-cache",
       "question": {
-        "zh": "大模型推理时，“KV 缓存（KV Cache）”是降低计算量、提升响应速度的核心机制。请解释 KV 缓存的存储原理，以及在长序列对话场景（如上下文长度超 4k）中，如何优化 KV 缓存的存储结构以减少内存占用？",
-        "en": "In large model inference, the \"KV cache\" is a core mechanism for reducing computational load and improving response speed. Please explain the storage principle of the KV cache, and how to optimize the storage structure of the KV cache to reduce memory usage in long-sequence dialogue scenarios (such as context length exceeding 4k)."
+        "zh": "KV cache 大小怎么算？",
+        "en": "How do you calculate KV cache size?"
       },
       "answer": {
-        "zh": "- KV Cache 存储的是每层每个 head 的历史 K、V 张量，用于避免自回归解码时的重复计算。\n\n- 它通常存放在 GPU HBM 中，但由于显存有限，长序列下会出现严重内存压力。\n\n- 在工程层面，PageAttention 通过 block table 将 KV Cache 分页管理，解决连续分配带来的内外碎片问题。\n- 在算法层面，可以通过量化（INT8/4）、GQA/MQA、滑动窗口注意力等手段直接缩小 KV Cache 体积。\n- 在系统层面，可以引入 HBM–DRAM–SSD 的多级缓存池，结合 LRU 等策略动态迁移数据，从而在超长上下文（>4k）场景中显著降低显存占用。",
-        "en": ""
+        "zh": "自回归生成时，每生成一个新 token，attention 需要它对**之前所有 token** 的 Q·K^T。\n\n如果不缓存，每步都要重算前面所有 token 的 K/V → 复杂度 `O(L^2)` 每步、`O(L^3)` 总；\n缓存后每步只需算新 token 的 K/V 并和缓存拼接 → `O(L)` 每步、`O(L^2)` 总。\n\n代价是显存：cache 大小 = `2 (K+V) × num_layers × num_heads × head_dim × seq_len × batch × bytes`。LLaMA-7B 在 2048 长度下单 batch 约 **1GB**。",
+        "en": "In autoregressive generation, every new token's attention needs to compute Q·Kᵀ against **all previous tokens**.\n\nWithout caching, every step re-derives K/V for every prior token → `O(L²)` per step, `O(L³)` total.\nWith caching, every step only computes the new token's K/V and concatenates with the cache → `O(L)` per step, `O(L²)` total.\n\nThe trade-off is memory: cache size = `2 (K+V) × num_layers × num_heads × head_dim × seq_len × batch × bytes`. For LLaMA-7B at length 2048 with batch 1, that's about **1 GB**."
       },
       "category": "1.4 KV Cache",
       "file": "1 底层/1.4 KV Cache/question.md"
     },
     {
-      "id": "q-1788674761657-da2k",
-      "createdAt": 1791275996813,
-      "updatedAt": 1791275996813,
+      "id": "q-1788674761658-kzt9",
+      "createdAt": 1791722218665,
+      "updatedAt": 1791722218665,
       "question": {
-        "zh": "通信｜GPUDirect RDMA 的原理和限制条件是什么？",
-        "en": "Communication | What are the principles and limitations of GPUDirect RDMA?"
+        "zh": "通信｜传输进行中 decode 节点挂了，请求怎么处理？",
+        "en": "Communication | If a decode node crashes during transmission, how should the request be handled?"
+      },
+      "answer": {
+        "zh": "decode节点挂了之后，需要看p侧处理的逻辑 1. 如果p侧的处理逻辑是，他会保存kv cache全层的信息直到pd传输完成后再将内容废弃的话，那么此时如果发生decode节点挂了，是可以从p重新拉取一次kv cache ，之后重新进行推理；2. 如果p的是传一层废弃一层的话，那么当decode节点挂了，就需要abort 他之后，并同步告知p，p会讲该请求从running 置换到waiting中，直接raise出去",
+        "en": ""
+      },
+      "category": "4 卡间通信开销大",
+      "file": "2 框架/1.1 推理架构/优化方向/4 卡间通信开销大/question.md"
+    },
+    {
+      "id": "q-1791460580663-2c36vg",
+      "createdAt": 1791460580663,
+      "updatedAt": 1791460580663,
+      "question": {
+        "zh": "MTP是否属于并行预测Token\\\\ \n如何在保持自回归生成情况下提升效率",
+        "en": ""
+      },
+      "answer": {
+        "zh": "",
+        "en": ""
+      },
+      "category": "1 自回归串行延迟高",
+      "file": "2 框架/1.1 推理架构/优化方向/1 自回归串行延迟高/question.md"
+    },
+    {
+      "id": "q-1780887508039-jduf",
+      "createdAt": 1791362716665,
+      "updatedAt": 1791362716665,
+      "question": {
+        "zh": "megatron-lm中通信优化怎么做？",
+        "en": "How to optimize communication in megatron-lm?"
       },
       "answer": {
         "zh": "",
@@ -79,11 +64,71 @@
       "file": "2 框架/1.1 推理架构/优化方向/4 卡间通信开销大/question.md"
     },
     {
-      "id": "q-1791460734566-oj3m9v",
-      "createdAt": 1791460734566,
-      "updatedAt": 1791460734566,
+      "id": "q-1788674761658-ycjt",
+      "createdAt": 1791275996779,
+      "updatedAt": 1791275996779,
       "question": {
-        "zh": "操作系统中，MP和read有什么区别",
+        "zh": "通信｜同节点 PD 能否用 NVLink？K8s 下为什么不行？",
+        "en": ""
+      },
+      "answer": {
+        "zh": "",
+        "en": ""
+      },
+      "category": "4 卡间通信开销大",
+      "file": "2 框架/1.1 推理架构/优化方向/4 卡间通信开销大/question.md"
+    },
+    {
+      "id": "q-1780887910836-q533",
+      "createdAt": 1791275996963,
+      "updatedAt": 1791275996963,
+      "question": {
+        "zh": "在 AI Infra 底层硬件适配中，需考虑不同芯片架构（如 x86、ARM、RISC-V）的指令集差异。请以“卷积算子”为例，说明如何设计跨架构兼容的算子实现方案，同时兼顾不同硬件的性能优势？",
+        "en": "In AI Infrastructure hardware adaptation, the instruction set differences of different chip architectures (such as x86, ARM, RISC-V) need to be considered. Taking the \"convolution operator\" as an example, please explain how to design a cross-architecture compatible operator implementation scheme while taking into account the performance advantages of different hardware."
+      },
+      "answer": {
+        "zh": "",
+        "en": ""
+      },
+      "category": "其他",
+      "file": "data/other_question.md"
+    },
+    {
+      "id": "q-1788674761658-t3um",
+      "createdAt": 1791275996758,
+      "updatedAt": 1791275996758,
+      "question": {
+        "zh": "通信｜EP（专家并行）的 AllToAll 和 TP 的 AllReduce，通信量和频率差多少？对网络要求的区别？",
+        "en": "Communications | What is the difference in communication volume and frequency between AllToAll in EP (Expert Parallelism) and AllReduce in TP? What are the differences in network requirements?"
+      },
+      "answer": {
+        "zh": "",
+        "en": ""
+      },
+      "category": "4 卡间通信开销大",
+      "file": "2 框架/1.1 推理架构/优化方向/4 卡间通信开销大/question.md"
+    },
+    {
+      "id": "q-1780887481850-855v",
+      "createdAt": 1791425068046,
+      "updatedAt": 1791425068046,
+      "question": {
+        "zh": "在 AI 训练场景中，分布式训练常面临通信瓶颈问题。请说明 AllReduce、Broadcast、ReduceScatter 这三种核心通信算子的适用场景差异，并分析在千亿参数大模型训练中，如何选择通信策略以降低延迟、提升吞吐量？",
+        "en": "In AI training scenarios, distributed training often faces communication bottlenecks. Please explain the differences in applicable scenarios for the three core communication operators: AllReduce, Broadcast, and ReduceScatter. Furthermore, analyze how to choose a communication strategy to reduce latency and improve throughput when training a large model with hundreds of billions of parameters."
+      },
+      "answer": {
+        "zh": "",
+        "en": ""
+      },
+      "category": "4 卡间通信开销大",
+      "file": "2 框架/1.1 推理架构/优化方向/4 卡间通信开销大/question.md"
+    },
+    {
+      "id": "q-1791460757439-00cuj4",
+      "createdAt": 1791460757439,
+      "updatedAt": 1791460757439,
+      "question": {
+        "zh": "进程之间那些常见通信方式",
         "en": ""
       },
       "answer": {
@@ -94,26 +139,11 @@
       "file": "computer_base/0 操作系统/question.md"
     },
     {
-      "id": "q-1780901854289-aj92",
-      "createdAt": 1791425111507,
-      "updatedAt": 1791425111507,
+      "id": "q-1791460757439-00cuj4",
+      "createdAt": 1791460757439,
+      "updatedAt": 1791460757439,
       "question": {
-        "zh": "什么 RMSNorm 在大模型里比 LayerNorm 更常见",
-        "en": "Why is RMSNorm more common than LayerNorm in large models."
-      },
-      "answer": {
-        "zh": "RMSNorm 去掉了均值中心化，只保留方差归一化，计算更简单，开销更低，而且在大模型里通常足够稳定。相比 LayerNorm，它少了一部分计算和同步开销，尤其在大规模训练和推理里更有工程优势。很多模型选择 RMSNorm，不是因为它理论上一定更强，而是因为它在稳定性和效率之间更平衡。工程里常见的选择逻辑就是：只要效果差不多，就选更省的。",
-        "en": ""
-      },
-      "category": "其余",
-      "file": "0 LLM/其余/question.md"
-    },
-    {
-      "id": "q-1791460734566-oj3m9v",
-      "createdAt": 1791460734566,
-      "updatedAt": 1791460734566,
-      "question": {
-        "zh": "操作系统中，MP和read有什么区别",
+        "zh": "进程之间那些常见通信方式",
         "en": ""
       },
       "answer": {
@@ -122,37 +152,6 @@
       },
       "category": "1 操作系统",
       "file": "computer_base/1 操作系统/question.md"
-    },
-    {
-      "id": "q-1780887893929-yl18",
-      "createdAt": 1791275996971,
-      "updatedAt": 1791275996971,
-      "question": {
-        "zh": "将Ampere架构的算子适配到Hopper架构的卡上，你会对哪些地方进行升级改造？",
-        "en": "If you were to adapt the Ampere architecture operators to the Hopper architecture card, what upgrades or modifications would you make?"
-      },
-      "answer": {
-        "zh": "",
-        "en": ""
-      },
-      "category": "其他",
-      "file": "data/other_question.md"
-    },
-    {
-      "id": "q-1791458008252-f2gbou",
-      "createdAt": 1791458008252,
-      "updatedAt": 1791458008252,
-      "question": {
-        "zh": "一条长度10000的序列和是条长度1000的序列，token总数一样，计算量一样么?",
-        "en": "If one sequence has a length of 10,000 and another has a length of 1,000, with the same total number of tokens, is the computational cost the same?"
-      },
-      "answer": {
-        "zh": "",
-        "en": ""
-      },
-      "category": "性能估算",
-      "file": "2 框架/1.1 推理架构/性能估算/question.md"
     }
-  ],
-  "sentAt": 1792972889973
+  ]
 }
