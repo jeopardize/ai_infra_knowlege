@@ -28,7 +28,7 @@
 4. 
 
 # RDMA 网卡架构
-包含一下7个部件：
+包含一下7个部件，架构图如{@fig:rdma_arch}：
 - 用于连接主机端的CPU和内存的PCIe部件
 - 用于连接网络端的MAC部件和PHY部件
 - 用于处理本端或远端不同通信原语对应的RDMA请求和响应，进行保温封装和解析的保温处理逻辑部件
@@ -36,6 +36,7 @@
 - 用于支持RC传输的可靠性传输部件
 - 用于存储数据和元数据信息的网卡SRAM（static random access memory）缓存
 - 不同网卡架构中还可能有其他可选部件，可以在存储资源，可靠传输，应用方面进行优化
+![rdma_arch](images/rdma_arch.png){#fig:rdma_arch}
 
 
 
