@@ -38,6 +38,8 @@
 - 不同网卡架构中还可能有其他可选部件，可以在存储资源，可靠传输，应用方面进行优化
 ![rdma_arch](images/rdma_arch.png){#fig:rdma_arch}
 
+# RDMA 网卡优化
+
 
 
 
