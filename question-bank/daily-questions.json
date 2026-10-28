@@ -1,6 +1,6 @@
 {
   "date": "2026-10-28",
-  "summary": "",
+  "summary": "## 今日题目\n1. **VLLM中KV Cache过期策略是什么**\n2. **大模型推理时，“KV 缓存（KV Cache）”是降低计算量、提升响应速度的核心机制。请解释 KV 缓存的存储原理，以及在长序列对话场景（如上下文长度超 4k）中，如何优化 KV 缓存的存储结构以减少内存占用？**\n3. **通信｜控制面和数据面为什么必须分离？**\n4. **通信｜GPUDirect RDMA 的原理和限制条件是什么？**\n5. **通信｜为什么 NCCL 不适合做 KV 传输？至少说三点。**\n6. **多GPU通信时NVSHMEM和NVLink的区别**\n7. **MTP和Eagle的区别，MTP head的prefill过程，MTP head的kv cache变化**\n8. **操作系统中，MP和read有什么区别**\n9. **AI 框架（如 TensorFlow/PyTorch）的算子优化是 AI Infra 的核心能力之一。假设需优化一个高频调用的“矩阵乘+激活函数（如 ReLU）”融合算子，从硬件适配（如 GPU CUDA 核心/TPU 脉动阵列）、数据布局（如 NHWC/NCHW）、指令调度三个维度，说明关键优化思路。**\n10. **讲一下 FlashAttention 的原理**\n\n---\n\n## 笔记缺失点总结\n1. **补推理侧 KV Cache 进阶笔记**：现有 KV Cache 笔记仅覆盖基础，PagedAttention、Prefix Caching、长序列 KV 压缩/量化等优化方向完全未覆盖，无法应对 vLLM 策略、长序列存储优化类题目。优先级最高。\n2. **补集群通信细分主题笔记**：现有通信笔记仅含 NCCL、NVLink、IB 基础，GPUDirect RDMA、NVSHMEM、控制面/数据面分离、KV 传输场景适配均未覆盖，通信类 4 道题无对应笔记支撑。\n3. **补投机解码进阶笔记**：现有投机解码笔记仅入门，MTP、Eagle 等主流方案的实现细节、prefill 流程、KV Cache 交互完全缺失，无法应对第 7 题。\n4. **补操作系统 IO 子系统笔记**：现有操作系统笔记未覆盖零拷贝（如 mmap/read 区别）等核心 IO 概念，第 8 题无对应知识点。",
   "questions": [
     {
       "id": "q-1781537383942-i2pf",
@@ -153,5 +153,6 @@
       "category": "Attention",
       "file": "0 LLM/Attention/question.md"
     }
-  ]
+  ],
+  "sentAt": 1793145615607
 }
