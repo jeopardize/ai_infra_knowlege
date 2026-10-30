@@ -2340,7 +2340,7 @@
       "color": "#fde047",
       "kind": "highlight",
       "quote": "RoCEv1 基 于 CM（communication manager）接 口 建 链 ，\nRoCEv2 则同时支持基于 CM 接口和 Socket 接口 2 种\n建链方式",
-      "note": "",
+      "note": "M",
       "createdAt": 1793347643960
     }
   ]
