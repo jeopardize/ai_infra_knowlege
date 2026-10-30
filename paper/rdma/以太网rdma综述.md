@@ -12,7 +12,17 @@
 
 # RDMA 传输机制
 
-1. rdma 建立连接，rdma 允许本端用户态应用程序快速写远端内存。因此，在正式通信之前，rdma本端引用程序需要首先申请注册内存区域（memory region， MR）用于存放收发数据，并与通信远端进行建链协商，提前获取远端主机信息和内存访问权限等（需要cpu参与）
+1. rdma 建立连接，rdma 允许本端用户态应用程序快速写远端内存。
+> 对比
+> - 无rdma
+> a gpu → gpu memory → cudaMemcpy → host memory → TCP/IP stack → NIC → network → NIC → host memory → cudaMemcpy → remote gpu memory
+> - 没有GPUDirect + rdma：
+> gpu memory → cudaMemcpy → host pinned memory → RDMA NIC → 网络 → 远端 NIC → 远端 host memory
+> - 有GPUDirect+rdma：
+> gpu memory → NIC → 网络 → NIC → 远端 gpu memory
+
+因此，在正式通信之前，rdma本端引用程序需要首先申请注册内存区域（memory region， MR）用于存放收发数据，并与通信远端进行建链协商，提前获取远端主机信息和内存访问权限等（需要cpu参与）
+
 > iWARP 和 ROCE v1 基于 CM（communication manager）接口建联，ROCE v2 同时机遇 CM 接口和Socket接口2中建链方式
 
 2.RDMA通信原语，rdna通过verbs 变成编程接口为上层应用提供两种通信原语，分别为双边通信原语和单边通信原语
@@ -55,3 +65,4 @@
 指标：带宽，延迟，每秒消息数（messages per second， MPS），cpu利用率
 - 运行一组代表性应用程序工作负载
 - 使用专业性能评估工具，perftest
+rdmardma
