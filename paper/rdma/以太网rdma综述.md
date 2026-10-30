@@ -24,6 +24,10 @@
 因此，在正式通信之前，rdma本端引用程序需要首先申请注册内存区域（memory region， MR）用于存放收发数据，并与通信远端进行建链协商，提前获取远端主机信息和内存访问权限等（需要cpu参与）
 
 > iWARP 和 ROCE v1 基于 CM（communication manager）接口建联，ROCE v2 同时机遇 CM 接口和Socket接口2中建链方式
+> ** CM 和 Socket 区别：**
+> socket需要自己写数据传输和控制层，而CM 已经封装好
+> 
+> 
 
 2.RDMA通信原语，rdna通过verbs 变成编程接口为上层应用提供两种通信原语，分别为双边通信原语和单边通信原语
 - 双边通信原语 RECV 和 SEND ：需要远端CPU在本端SEND发送消息前提前下发RECV制定接受地址
@@ -65,4 +69,4 @@
 指标：带宽，延迟，每秒消息数（messages per second， MPS），cpu利用率
 - 运行一组代表性应用程序工作负载
 - 使用专业性能评估工具，perftest
-rdmardma
+rdmardmaCMSocketsocketCM
