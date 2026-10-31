@@ -29,15 +29,15 @@
 > 
 > 
 
-2.RDMA通信原语，rdna通过verbs 变成编程接口为上层应用提供两种通信原语，分别为双边通信原语和单边通信原语
+2.RDMA通信原语，RDMA通过verbs 变成编程接口为上层应用提供两种通信原语，分别为双边通信原语和单边通信原语
 - 双边通信原语 RECV 和 SEND ：需要远端CPU在本端SEND发送消息前提前下发RECV制定接受地址
 - 单边通信原语 READ，WRITE，ATOMIC则不涉及远端CPU参与，可以获得更低的延迟和更高的带宽
 > 此外，SEND 和 WRITE可以携带额外的4B的数据，改数据不直接写入内存，而是作为状态信息返回给上层应用（CPU参与）
 
-3. 建联完成后，应用程序通过RDMA以工作请求（work request，WR）的形式下发post远端访问请求，报文如[@fig:ROCEv2_write]所示
+3. 建链完成后，应用程序通过RDMA以工作请求（work request，WR）的形式下发post远端访问请求，报文如[@fig:ROCEv2_write]所示
 ![Rocev2_write](images/Rocev2_write.png){#fig:ROCEv2_write}
-对应通信流程如图[@fig:ROCEv2_process]所示，对于应用程序下发的 WR ， 由用户态驱动将其转化为工作队列元素 （ work queue element ， WQE ） 并放入队列对 （ queue pair ， QP ） 中 （ 图 2 中① ） . QP 是 RDMA 双端通信的基本单位 [57] ， 由发送队列 （ send queue ， SQ ） 和接收队列 （ receive queue ， RQ ） 组成 ， 由 SQ 接收应用程序下发的 SEND ， READ ， WRITE 等请求 ， 由 RQ 接收应用程序下发的 RECV （ 对应 SEND 请求 ） . 对于 RDMAWRITE 操作 ， 由网卡在获取 RDMA 传输请求 （ 图 2 中② ） 后取出本端内存数据 （ 图 2 中③ ） 并执行远端内存写入 （ 图 2 中④ ） .
-![Rocev2_process](images/Rocev2_process.png)
+对应通信流程如图[@fig:Rocev2_process]所示，对于应用程序下发的 WR ， 由用户态驱动将其转化为工作队列元素 （ work queue element ， WQE ） 并放入队列对 （ queue pair ， QP ） 中 （ 图 2 中① ） . QP 是 RDMA 双端通信的基本单位 [57] ， 由发送队列 （ send queue ， SQ ） 和接收队列 （ receive queue ， RQ ） 组成 ， 由 SQ 接收应用程序下发的 SEND ， READ ， WRITE 等请求 ， 由 RQ 接收应用程序下发的 RECV （ 对应 SEND 请求 ） . 对于 RDMAWRITE 操作 ， 由网卡在获取 RDMA 传输请求 （ 图 2 中② ） 后取出本端内存数据 （ 图 2 中③ ） 并执行远端内存写入 （ 图 2 中④ ） .
+![Rocev2_process](images/Rocev2_process.png){#fig:Rocev2_process}
 
 4. 
 
@@ -69,4 +69,3 @@
 指标：带宽，延迟，每秒消息数（messages per second， MPS），cpu利用率
 - 运行一组代表性应用程序工作负载
 - 使用专业性能评估工具，perftest
-rdmardmaCMSocketsocketCM
