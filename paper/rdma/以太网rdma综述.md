@@ -32,6 +32,8 @@
 2.RDMA通信原语，RDMA通过verbs 变成编程接口为上层应用提供两种通信原语，分别为双边通信原语和单边通信原语
 - 双边通信原语 RECV 和 SEND ：需要远端CPU在本端SEND发送消息前提前下发RECV制定接受地址
 - 单边通信原语 READ，WRITE，ATOMIC则不涉及远端CPU参与，可以获得更低的延迟和更高的带宽
+- 
+> verbs 就是 RDMA 的标准底层编程接口（libibverbs），给应用程序一套原语，直接操控 RNIC（RDMA 网卡）硬件，绕开内核协议栈，实现远端内存直接读写。
 > 此外，SEND 和 WRITE可以携带额外的4B的数据，改数据不直接写入内存，而是作为状态信息返回给上层应用（CPU参与）
 
 3. 建链完成后，应用程序通过RDMA以工作请求（work request，WR）的形式下发post远端访问请求，报文如[@fig:ROCEv2_write]所示
