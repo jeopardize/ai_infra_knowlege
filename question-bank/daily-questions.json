@@ -1,6 +1,6 @@
 {
   "date": "2026-11-01",
-  "summary": "",
+  "summary": "## 今日题目\n1. **VLLM中KV Cache过期策略是什么**\n2. **大模型推理时，“KV 缓存（KV Cache）”是降低计算量、提升响应速度的核心机制。请解释 KV 缓存的存储原理，以及在长序列对话场景（如上下文长度超 4k）中，如何优化 KV 缓存的存储结构以减少内存占用？**\n3. **通信｜GPUDirect RDMA 的原理和限制条件是什么？**\n4. **通信｜控制面和数据面为什么必须分离？**\n5. **通信｜为什么 NCCL 不适合做 KV 传输？至少说三点。**\n6. **投机采样的加速比分析公式，MoE模型的投机采样遇到的性能问题**\n7. **讲一下 FlashAttention 的原理**\n8. **cuda的global memory和shared memory访存分别需要注意什么？**\n9. **CP上下文并行的通信量该如何分析计算**\n10. **操作系统中，MP和read有什么区别**\n\n---\n\n## 笔记缺失点总结\n1. **补「KV Cache 完整知识体系」笔记**：目前仅 1 项未掌握、2 项未覆盖，缺少 PagedAttention、Prefix Caching、长序列存储优化（如量化/稀疏KV）等主题，对应今日 1、2 题直接相关，建议优先整理 KV Cache 优化方向全链路笔记。\n2. **补「投机解码（Speculative Decoding）」笔记**：2 项全未覆盖，缺少加速比推导、MoE 场景适配问题等内容，对应今日第 6 题，建议补充基础原理+性能分析公式+MoE 特殊问题三类内容。\n3. **补「集群通信进阶」笔记**：NCCL 仅基础内容、GPUDirect RDMA/控制面数据面分离/KV 传输场景优化完全缺失，对应今日 3、4、5 题，建议在「1.2 集群通信」目录下新增 GPUDirect RDMA、通信面分离、KV 传输专用方案等笔记。\n4. **补「CUDA 访存优化&FlashAttention」笔记**：GPU 架构基础 2 项全未覆盖，缺少 global/shared memory 访存规则、FlashAttention  tiling 访存优化原理，对应今日 7、8 题，建议补充 GPU 存储层次+访存优化+FlashAttention 原理笔记。",
   "questions": [
     {
       "id": "q-1781537383942-i2pf",
@@ -154,5 +154,6 @@
       "category": "0 操作系统",
       "file": "computer_base/0 操作系统/question.md"
     }
-  ]
+  ],
+  "sentAt": 1793491220397
 }
