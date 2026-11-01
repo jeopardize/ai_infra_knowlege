@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "source": "computer_base/1 计算机网络/计算机网络（第7版）-谢希仁.pdf",
+  "annotations": [
+    {
+      "id": "mvxzodcz-bx8iii",
+      "page": 79,
+      "rects": [
+        {
+          "x": 0.12114143350124496,
+          "y": 0.5659627641641899,
+          "w": 0.11794397260010656,
+          "h": 0.03411720584581997
+        }
+      ],
+      "color": "#fde047",
+      "kind": "highlight",
+      "quote": "框选区域",
+      "note": "",
+      "createdAt": 1793547169955
+    }
+  ]
+}
