@@ -1,6 +1,6 @@
 {
   "date": "2026-11-02",
-  "summary": "",
+  "summary": "## 今日题目\n1. **KV cache 大小怎么算？**\n2. **通信｜传输进行中 decode 节点挂了，请求怎么处理？**\n3. **什么 RMSNorm 在大模型里比 LayerNorm 更常见**\n4. **如果推理时出现 OOM，你会怎么排查**\n5. **如果必须用 NCCL 做多卡 KV 传输，你会选择 NCCL 的哪种原语（点对点 send/recv 还是 all-gather 等集合原语）？在什么场景下反而可能比手写 RDMA 更合适？**\n6. **量化（Quantization）是 AI 模型推理加速的关键技术，常见有 INT8、FP16、FP8 等精度。请说明模型量化过程中“校准（Calibration）”步骤的核心作用，以及在量化后出现精度下降时，可采取哪些技术手段（如混合精度、量化感知训练）进行优化？**\n7. **MTP和Eagle的区别，MTP head的prefill过程，MTP head的kv cache变化**\n8. **在 AI Infra 底层硬件适配中，需考虑不同芯片架构（如 x86、ARM、RISC-V）的指令集差异。请以“卷积算子”为例，说明如何设计跨架构兼容的算子实现方案，同时兼顾不同硬件的性能优势？**\n9. **EP专家并行场景下通信开销怎么算**\n10. **怎么知道一个batch应该塞多少token？**\n\n## 笔记缺失点总结\n1. **推理量化方向**：现有 `paper/Quantization/Quantization.md` 偏论文综述，缺少校准方法、精度优化手段（混合精度、QAT）等工程化落地笔记，对应今日第6题直接缺口，建议补「推理量化校准与精度优化」专题。\n2. **投机解码进阶方向**：现有投机解码笔记未覆盖 MTP、Eagle 等进阶方案及 MTP head 的 KV cache 交互细节，对应今日第7题缺口，建议补「MTP/Eagle 等投机解码变种」笔记。\n3. **并行通信计算方向**：EP 专家并行通信开销、KV cache 多卡传输原语选型无对应笔记，且 NCCL 笔记偏基础，建议补「专家并行（EP）通信模型」「KV cache 多卡传输方案选型」两块内容。\n4. **推理调度与容量估算方向**：batch token 数估算、continuous batching 调度逻辑未形成系统笔记，现有性能估算笔记偏宏观，建议补「连续批处理与 batch 容量估算」专题。",
   "questions": [
     {
       "id": "kb-kv-basic",
@@ -153,5 +153,6 @@
       "category": "工程问题",
       "file": "工程问题/question.md"
     }
-  ]
+  ],
+  "sentAt": 1793577618253
 }
