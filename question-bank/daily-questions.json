@@ -1,6 +1,6 @@
 {
   "date": "2026-11-04",
-  "summary": "",
+  "summary": "## 今日题目\n1. **KV cache 大小怎么算？**\n2. **通信｜传输进行中 decode 节点挂了，请求怎么处理？**\n3. **nccl中的通信源语有哪些？all-reduce参数更新一次参数需要几次通信？**\n4. **请说明“AI 编译优化”（如 TVM、TensorRT）的核心工作流程，对比“基于模板的编译”与“自动搜索的编译”两种技术路线的优缺点，以及在面对异构硬件（CPU+GPU+NPU）时的编译策略设计**\n5. **在 AI 训练场景中，分布式训练常面临通信瓶颈问题。请说明 AllReduce、Broadcast、ReduceScatter 这三种核心通信算子的适用场景差异，并分析在千亿参数大模型训练中，如何选择通信策略以降低延迟、提升吞吐量？**\n6. **NPU和GPU的本质区别是**\n7. **GPU matrix transpose使用shared memory的好处**\n8. **将Ampere架构的算子适配到Hopper架构的卡上，你会对哪些地方进行升级改造？**\n9. **通信｜怎么把 KV 传输延迟藏起来？说出 layer-wise 流水之外的至少一种。**\n10. **Prefix caching 和 KV cache 有什么区别？**\n\n## 笔记缺失点总结\n1. **训练分布式方向严重缺失**：数据并行、张量并行、流水线并行、ZeRO/FSDP、混合精度训练、梯度累积与激活重算全部未覆盖，需补《1.2 训练框架》下的分布式训练体系笔记，匹配今日第3、5题考点。\n2. **KV Cache 与 Prefix Caching 体系不全**：KV Cache 仅1项未掌握、3项未覆盖，Prefix Caching 完全未覆盖，需补《1.4 KV Cache》下的 Prefix Caching、KV 传输优化、容量计算专题，匹配今日第1、9、10题考点。\n3. **GPU 架构与算子优化薄弱**：GPU 架构基础、Roofline 分析、Triton 全部未覆盖，需补《1.0 GPU&异构计算》下的 Ampere/Hopper 架构差异、shared memory 优化、NPU vs GPU 架构对比笔记，匹配今日第6、7、8题考点。\n4. **AI 编译优化完全空白**：无 TVM/TensorRT 相关编译流程、模板 vs 自动搜索路线、异构编译策略的笔记，需新增《2 框架》下的 AI 编译优化专题，匹配今日第4题考点。",
   "questions": [
     {
       "id": "kb-kv-basic",
@@ -155,5 +155,6 @@
       "category": "1.4 KV Cache",
       "file": "1 底层/1.4 KV Cache/question.md"
     }
-  ]
+  ],
+  "sentAt": 1793750417472
 }
