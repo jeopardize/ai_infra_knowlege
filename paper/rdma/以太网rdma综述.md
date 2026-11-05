@@ -82,7 +82,7 @@ QP可以通过一下四种方式进行通信，包括
 ![rdma_arch](images/rdma_arch.png){#fig:rdma_arch}
 
 # RDMA和host/device的交互
-RDMA虽然想要bypass CPU，但是不能完全不和CPU交互。和CPU交互主要有两个机制：反馈和内存注册。反馈通过CQ（completion queue）完成。SQ/RQ上的WQE被完成了，HCA都会生成一个CQE（completion queue element）放在CQ中，用于记录哪个QP上的操作完成了。应用程序想要知道自己的通信是否完成，就要不断地poll CQ查看是否有新的CQE（CPU自旋在这个等待上）。HCA也支持中断事件，在CQ出现新的CQE的时候就去中断一下CPU（CPU之前可以异步作别的事情）。两种方法各有优缺点，polling方式浪费CPU，但是获取CQE延迟最小。中断方式解放CPU，但是获取CQE延迟大。
+RDMA虽然想要bypass CPU，但是不能完全不和CPU交互。和CPU交互主要有两个机制：== 反馈和内存注册 ==。反馈通过CQ（completion queue）完成。SQ/RQ上的WQE被完成了，HCA都会生成一个CQE（completion queue element）放在CQ中，用于记录哪个QP上的操作完成了。应用程序想要知道自己的通信是否完成，就要不断地poll CQ查看是否有新的CQE（CPU自旋在这个等待上）。HCA也支持中断事件，在CQ出现新的CQE的时候就去中断一下CPU（CPU之前可以异步作别的事情）。两种方法各有优缺点，polling方式浪费CPU，但是获取CQE延迟最小。中断方式解放CPU，但是获取CQE延迟大。
 
 RDMA需要能访问host内存，内存注册（memory registration, MR）提供了安全的访问机制。注册通过HCA驱动完成，这块内存需要物理上被锁住（禁止换页），这块内存对应生成多个TPT（translation and protection table）条目，记录虚拟地址、物理地址、访问权限。注册后，会生成一个Memory Key返回给应用程序。Key有两个：LKey（local key）和RKey（remote key）,LKey是自己访问自己的内存，需要放在WR里的，RKey是远端访问本地内存需要提供的key。
 
@@ -90,6 +90,7 @@ RDMA需要能访问host内存，内存注册（memory registration, MR）提供�
 
 # RDMA编程基础
 
+## 1. 创建资源
 通信时，资源的创建必须按照顺序：
 
 |顺序 | 资源名称 | 作用 | API/概念 |
@@ -281,6 +282,8 @@ int main(int argc, char *argv[]) {
 }
 ```
 
+
+## 2.建立通信
 
 
 
