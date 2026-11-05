@@ -101,6 +101,186 @@ RDMA需要能访问host内存，内存注册（memory registration, MR）提供�
 5 | 队列对 (QP) | 双向通信通道 (SQ + RQ)。| ibv_create_qp |
 
 
+```cpp
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <infiniband/verbs.h> //rdma的verbs api库（ibv_**）
+
+// 宏定义：队列大小
+#define CQ_SIZE 10 // 完成队列深度
+#define QP_SIZE 10 // 队列对深度 (SQ + RQ)
+
+// 结构体：存储本地 RDMA 资源
+struct RDMA_Resources {
+    struct ibv_context *context; // HCA/RNIC 上下文
+    struct ibv_pd *pd;           // 保护域
+    struct ibv_cq *cq;           // 完成队列
+    struct ibv_qp *qp;           // 队列对
+    struct ibv_mr *mr;           // 内存区域 (Memory Region) 句柄
+    char *buffer;                // 指向 Host 内存缓冲区的指针
+    size_t buf_size;             // 缓冲区大小
+};
+
+// 全局资源对象
+struct RDMA_Resources res;
+
+#define BUF_SIZE 1024 // 缓冲区大小 1KB
+
+int reg_memory() {
+    // 1. 分配 Host 内存
+    res.buf_size = BUF_SIZE;
+    // 使用 aligned_alloc 以确保内存对齐，尽管 RDMA 不强制要求，但这是一个好的实践
+    if (posix_memalign((void **)&res.buffer, sysconf(_SC_PAGESIZE), res.buf_size)) {
+        fprintf(stderr, "错误: 无法分配对齐的主机内存。\n");
+        return 1;
+    }
+
+    // 简单填充缓冲区，便于验证
+    snprintf(res.buffer, res.buf_size, "Hello, RDMA World! Data from Host.");
+    printf("✅ 主机缓冲区分配成功，大小: %zu 字节。\n", res.buf_size);
+
+    // 2. 注册内存区域 (MR)
+    // ibv_reg_mr(pd, addr, length, access_flags)
+    // IBV_ACCESS_LOCAL_WRITE: 允许 HCA DMA 写入本地内存 (用于接收)
+    // IBV_ACCESS_REMOTE_WRITE: 允许远程机器 RDMA 写入此内存
+    // IBV_ACCESS_REMOTE_READ: 允许远程机器 RDMA 读取此内存
+    int access_flags = IBV_ACCESS_LOCAL_WRITE |
+                       IBV_ACCESS_REMOTE_WRITE |
+                       IBV_ACCESS_REMOTE_READ;
+
+    res.mr = ibv_reg_mr(res.pd, res.buffer, res.buf_size, access_flags);
+    if (!res.mr) {
+        fprintf(stderr, "错误: 无法注册内存区域 (MR)。\n");
+        // 注册失败，需要释放已分配的内存
+        free(res.buffer);
+        return 1;
+    }
+
+    printf("✅ 内存区域注册成功。\n");
+    printf("   LKey (本地键): 0x%x\n", res.mr->lkey);
+    printf("   RKey (远程键): 0x%x\n", res.mr->rkey);
+    printf("   Buffer: %s\n", res.buffer);
+    
+    return 0;
+}
+
+int init_resources(const char *dev_name) {
+    struct ibv_device **dev_list = NULL;
+    struct ibv_device *ib_dev = NULL;
+    int num_devices = 0;
+    int i;
+
+    // 1. 获取 HCA 设备列表
+    dev_list = ibv_get_device_list(&num_devices);
+    if (!dev_list || num_devices <= 0) {
+        fprintf(stderr, "错误: 未找到任何 InfiniBand/RDMA 设备。\n");
+        return 1;
+    }
+
+    // 查找指定设备 (如果 dev_name 为 NULL, 默认使用第一个)
+    if (dev_name) {
+        for (i = 0; i < num_devices; ++i) {
+            if (!strcmp(ibv_get_device_name(dev_list[i]), dev_name)) {
+                ib_dev = dev_list[i];
+                break;
+            }
+        }
+    } else {
+        ib_dev = dev_list[0];
+    }
+
+    if (!ib_dev) {
+        fprintf(stderr, "错误: 未找到设备 %s\n", dev_name ? dev_name : "第一个设备");
+        ibv_free_device_list(dev_list);
+        return 1;
+    }
+
+    // 2. 打开 HCA 设备并创建上下文 (Context)
+    res.context = ibv_open_device(ib_dev);
+    ibv_free_device_list(dev_list); // 列表已不再需要
+    if (!res.context) {
+        fprintf(stderr, "错误: 无法打开设备上下文。\n");
+        return 1;
+    }
+
+    // 3. 分配保护域 (PD)
+    res.pd = ibv_alloc_pd(res.context);
+    if (!res.pd) {
+        fprintf(stderr, "错误: 无法分配保护域。\n");
+        return 1;
+    }
+
+    // 4. 创建完成队列 (CQ)
+    // ibv_create_cq(context, cqe, cq_context, channel, comp_vector)
+    // cqe: 完成队列深度，必须大于 (SQ_SIZE + RQ_SIZE)
+    res.cq = ibv_create_cq(res.context, CQ_SIZE, NULL, NULL, 0);
+    if (!res.cq) {
+        fprintf(stderr, "错误: 无法创建完成队列。\n");
+        return 1;
+    }
+
+    // 5. 创建队列对 (QP)
+    struct ibv_qp_init_attr qp_init_attr = {
+        .qp_context = NULL,
+        .send_cq = res.cq, // 发送和接收都使用同一个 CQ
+        .recv_cq = res.cq,
+        .cap = {
+            .max_send_wr  = QP_SIZE, // SQ 深度
+            .max_recv_wr  = QP_SIZE, // RQ 深度
+            .max_send_sge = 1,       // 每次操作的最大 Scatter/Gather 元素数
+            .max_recv_sge = 1
+        },
+        .qp_type = IBV_QPT_RC // 使用 Reliable Connected (RC) 类型
+    };
+
+    res.qp = ibv_create_qp(res.pd, &qp_init_attr);
+    if (!res.qp) {
+        fprintf(stderr, "错误: 无法创建队列对 (QP)。\n");
+        return 1;
+    }
+
+    printf("✅ 资源初始化成功: Context, PD, CQ, QP 已创建。\n");
+
+    reg_memory();
+    return 0;
+}
+
+void destroy_resources() {
+    // 1. 销毁 MR 和释放缓冲区
+    if (res.mr) {
+        ibv_dereg_mr(res.mr);
+        printf("🧹 MR 已注销。\n");
+    }
+    if (res.buffer) {
+        free(res.buffer);
+        printf("🧹 Host 缓冲区已释放。\n");
+    }
+    if (res.qp) ibv_destroy_qp(res.qp);
+    if (res.cq) ibv_destroy_cq(res.cq);
+    if (res.pd) ibv_dealloc_pd(res.pd);
+    if (res.context) ibv_close_device(res.context);
+    printf("🧹 所有 RDMA 资源已清理。\n");
+}
+
+
+int main(int argc, char *argv[]) {
+    // 您可以通过命令行参数指定 HCA 设备名称，例如 mlx5_0
+    const char *device_name = (argc > 1) ? argv[1] : NULL;
+
+    if (init_resources(device_name)) {
+        fprintf(stderr, "🔴 初始化失败，程序退出。\n");
+        return 1;
+    }
+    
+    // 可以在这里插入 QP 状态转换和通信代码 (后续单元将实现)
+    printf("QP 号码 (QPN): 0x%x\n", res.qp->qp_num);
+
+    destroy_resources();
+    return 0;
+}
+```
+
 
 
 
