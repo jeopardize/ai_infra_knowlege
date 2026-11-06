@@ -1,6 +1,6 @@
 {
   "date": "2026-11-06",
-  "summary": "",
+  "summary": "## 今日题目\n1. **KV cache 大小怎么算？**\n2. **通信｜传输进行中 decode 节点挂了，请求怎么处理？**\n3. **NPU和GPU的本质区别是**\n4. **CUDA Graph 和 TP 同时开启卡死的问题，如何解决**\n5. **怎么知道一个batch应该塞多少token？**\n6. **cuda的global memory和shared memory访存分别需要注意什么？**\n7. **通信｜EP（专家并行）的 AllToAll 和 TP 的 AllReduce，通信量和频率差多少？对网络要求的区别？**\n8. **Prefix caching 和 KV cache 有什么区别？**\n9. **操作系统中，MP和read有什么区别**\n10. **什么 RMSNorm 在大模型里比 LayerNorm 更常见**\n\n---\n\n## 笔记缺失点总结\n1. **推理核心概念缺口大**：补 `推理架构/连续批处理（Continuous Batching）`、`Prefix Caching` 笔记，覆盖 batch token 估算、Prefix caching 与 KV cache 差异类题目。\n2. **CUDA 硬件与内存模型薄弱**：补 `GPU 架构基础` 笔记，重点补充 global memory 与 shared memory 访存特性、CUDA Graph 与 TP 兼容性问题。\n3. **并行与集合通信知识不全**：补 `张量并行（TP）`、`专家并行（EP）` 笔记，对比 AllReduce/AllToAll 的通信量、频率及网络要求，同时补充节点故障容错逻辑。\n4. **操作系统细节缺失**：补 `操作系统/内存映射（mmap）` 笔记，明确 mmap 与 read 的本质区别。",
   "questions": [
     {
       "id": "kb-kv-basic",
@@ -154,5 +154,6 @@
       "category": "其余",
       "file": "0 LLM/其余/question.md"
     }
-  ]
+  ],
+  "sentAt": 1793923217350
 }
