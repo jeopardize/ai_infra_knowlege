@@ -1,6 +1,6 @@
 {
   "date": "2026-11-08",
-  "summary": "## 今日题目\n1. **KV cache 大小怎么算？**\n2. **通信｜传输进行中 decode 节点挂了，请求怎么处理？**\n3. **如果必须用 NCCL 做多卡 KV 传输，你会选择 NCCL 的哪种原语（点对点 send/recv 还是 all-gather 等集合原语）？在什么场景下反而可能比手写 RDMA 更合适？**\n4. **megatron-lm中通信优化怎么做？**\n5. **GPU matrix transpose使用shared memory的好处**\n6. **什么 RMSNorm 在大模型里比 LayerNorm 更常见**\n7. **为什么要做dynamic 调度 \\\\\n固定batchsizze的问题在哪里\\\\\nmax token/token budget 怎么确定\\\\\ndynamic batch 和 packing 是什么关系？只做Dynamic Batch，不做packing行不行;\\\\\n只用token数作为Dynamic Batch的预算，真的能做到阉割计算负载均衡么？\\\\\npadding为什么会造成算力浪费\\\\\n负载均衡到底均衡什么\\\\**\n8. **nccl中的通信源语有哪些？all-reduce参数更新一次参数需要几次通信？**\n9. **如果业务混合了长短 prompt，你会设计怎样的策略来动态决定是否走 PD 分离，而不是一刀切？**\n10. **通信｜怎么把 KV 传输延迟藏起来？说出 layer-wise 流水之外的至少一种。**\n\n---\n\n## 笔记缺失点总结\n1. **补训练并行体系笔记**：训练侧数据并行/张量并行/流水线并行/ZeRO-FSDP 全未覆盖，无法支撑第4题 Megatron-LM 通信优化类问题，优先补 `2 框架/1.2 训练框架/` 下的并行策略与通信优化相关笔记。\n2. **补动态调度与负载均衡笔记**：Continuous Batching、动态批处理与 packing 关系、负载均衡逻辑未覆盖，对应第7题全量考点，补充 `2 框架/1.1 推理架构/优化方向/5 并行负载不均/` 与请求编排相关笔记。\n3. **补 NCCL 深度笔记**：当前只有基础 NCCL 文件，原语分类、all-reduce 通信次数、KV 传输原语选型等考点缺失，补充 `1 底层/1.2 集群通信/nccl.md` 中原语原理、训练/推理场景选型内容。\n4. **补推理通信与容错笔记**：decode 节点故障处理、KV 传输延迟隐藏（非流水方式）、PD 分离动态策略无对应笔记，补充 `2 框架/1.1 推理架构/优化方向/4 卡间通信开销大/` 与推理容错相关内容。",
+  "summary": "## 今日题目\n1. **KV cache 大小怎么算？**\n2. **通信｜传输进行中 decode 节点挂了，请求怎么处理？**\n3. **如果必须用 NCCL 做多卡 KV 传输，你会选择 NCCL 的哪种原语（点对点 send/recv 还是 all-gather 等集合原语）？在什么场景下反而可能比手写 RDMA 更合适？**\n4. **megatron-lm中通信优化怎么做？**\n5. **GPU matrix transpose使用shared memory的好处**\n6. **什么 RMSNorm 在大模型里比 LayerNorm 更常见**\n7. **为什么要做dynamic 调度 \\\\\n固定batchsizze的问题在哪里\\\\\nmax token/token budget 怎么确定\\\\\ndynamic batch 和 packing 是什么关系？只做Dynamic Batch，不做packing行不行;\\\\\n只用token数作为Dynamic Batch的预算，真的能做到阉割计算负载均衡么？\\\\\npadding为什么会造成算力浪费\\\\\n负载均衡到底均衡什么\\\\**\n8. **nccl中的通信源语有哪些？all-reduce参数更新一次参数需要几次通信？**\n9. **如果业务混合了长短 prompt，你会设计怎样的策略来动态决定是否走 PD 分离，而不是一刀切？**\n10. **通信｜怎么把 KV 传输延迟藏起来？说出 layer-wise 流水之外的至少一种。**\n\n## 笔记缺失点总结\n1. **训练并行体系完全空白**：训练方向的数据并行、张量并行、流水线并行、ZeRO/FSDP、混合精度训练、梯度累积&激活重算 6 大核心主题全部未覆盖，直接导致第 4 题（megatron-lm 通信优化）无对应笔记支撑，需补 `2 框架/1.2 训练框架/` 下的并行策略与通信优化专题笔记。\n2. **NCCL 笔记深度不足**：现有 `ncll.md`（文件名拼写疑似错误）仅覆盖基础概念，集合通信原语分类、all-reduce 通信次数、训练/推理场景原语选型等内容缺失，对应第 3、8 题，需补 `1 底层/1.2 集群通信/` 下 NCCL 原语详解与场景选型笔记。\n3. **推理调度与负载均衡笔记薄弱**：Dynamic Batch、packing、token budget、负载均衡本质等内容未系统整理，现有负载均衡笔记粒度太粗，对应第 7 题，需补 `2 框架/1.1 推理架构/优化方向/5 并行负载不均/` 下的动态调度与 padding 浪费专题笔记。\n4. **推理容错与 KV 传输优化笔记缺失**：decode 节点故障处理、KV 传输延迟隐藏（除 layer-wise 流水外的方案）、PD 分离动态策略等场景无对应沉淀，对应第 2、9、10 题，需补 `2 框架/1.1 推理架构/优化方向/6 请求编排与配比不当/` 下的容错机制与 PD 分离策略笔记。",
   "questions": [
     {
       "id": "kb-kv-basic",
@@ -155,5 +155,5 @@
       "file": "2 框架/1.1 推理架构/优化方向/4 卡间通信开销大/question.md"
     }
   ],
-  "sentAt": 1794096061419
+  "sentAt": 1794096104644
 }
