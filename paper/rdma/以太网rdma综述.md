@@ -102,7 +102,7 @@ RDMA需要能访问host内存，内存注册（memory registration, MR）提供�
 5 | 队列对 (QP) | 双向通信通道 (SQ + RQ)。| ibv_create_qp |
 
 
-```cpp
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -167,8 +167,10 @@ int reg_memory() {
 }
 
 int init_resources(const char *dev_name) {
-    struct ibv_device **dev_list = NULL;
-    struct ibv_device *ib_dev = NULL;
+    struct ibv_device *ib_dev = NULL;//指向单个设备的指针
+    struct ibv_device **dev_list = NULL;//指向这个数组的指针
+//总而言之，用一个指针指向设备，然后将指针存储为一个list，然后再用一个指针完成遍历；多一个星号可以多一次寻址
+
     int num_devices = 0;
     int i;
 
@@ -176,7 +178,7 @@ int init_resources(const char *dev_name) {
     dev_list = ibv_get_device_list(&num_devices);
     if (!dev_list || num_devices <= 0) {
         fprintf(stderr, "错误: 未找到任何 InfiniBand/RDMA 设备。\n");
-        return 1;
+        return 1; // return 0 视为正常执行；return 非0 报错
     }
 
     // 查找指定设备 (如果 dev_name 为 NULL, 默认使用第一个)
