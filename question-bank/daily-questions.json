@@ -1,6 +1,6 @@
 {
   "date": "2026-11-12",
-  "summary": "## 今日题目\n1. **KV cache 大小怎么算？**\n2. **通信｜传输进行中 decode 节点挂了，请求怎么处理？**\n3. **CP上下文并行的通信量该如何分析计算**\n4. **为什么要做PD分离|| 再实际部署中，如何调整prefilll和decode的资源比例（比例设置会受到哪些因素影响）**\n5. **nccl中的通信源语有哪些？all-reduce参数更新一次参数需要几次通信？**\n6. **NPU和GPU的本质区别是**\n7. **什么 RMSNorm 在大模型里比 LayerNorm 更常见**\n8. **多GPU通信时NVSHMEM和NVLink的区别**\n9. **如果业务混合了长短 prompt，你会设计怎样的策略来动态决定是否走 PD 分离，而不是一刀切？**\n10. **megatron-lm中通信优化怎么做？**\n\n## 笔记缺失点总结\n1. **训练并行体系严重缺失**：数据并行、张量并行、流水线并行、ZeRO/FSDP 全未覆盖，需补「训练框架/并行策略」方向笔记，覆盖 megatron-lm 通信优化依赖的基础并行知识。\n2. **推理核心知识点缺口大**：Continuous Batching、PagedAttention、Prefix Caching、推理量化均未覆盖，需补「推理架构/核心机制」方向笔记，支撑 KV cache 计算、PD 分离策略分析。\n3. **硬件与通信基础薄弱**：GPU 架构、NPU 差异、NVSHMEM、Roofline 分析缺失，需补「GPU&异构计算」和「集群通信」方向笔记，解决 NPU/GPU 区别、NVSHMEM 与 NVLink 对比类问题。\n4. **Norm 相关笔记深度不足**：现有 `LLM/其余/Norm.md` 仅单文件且归类零散，需补「LLM 基础组件/Norm 对比」方向笔记，明确 RMSNorm 与 LayerNorm 的差异及大模型选型逻辑。",
+  "summary": "## 今日题目\n1. **KV cache 大小怎么算？**\n2. **通信｜传输进行中 decode 节点挂了，请求怎么处理？**\n3. **CP上下文并行的通信量该如何分析计算**\n4. **为什么要做PD分离|| 再实际部署中，如何调整prefilll和decode的资源比例（比例设置会受到哪些因素影响）**\n5. **nccl中的通信源语有哪些？all-reduce参数更新一次参数需要几次通信？**\n6. **NPU和GPU的本质区别是**\n7. **什么 RMSNorm 在大模型里比 LayerNorm 更常见**\n8. **多GPU通信时NVSHMEM和NVLink的区别**\n9. **如果业务混合了长短 prompt，你会设计怎样的策略来动态决定是否走 PD 分离，而不是一刀切？**\n10. **megatron-lm中通信优化怎么做？**\n\n## 笔记缺失点总结\n1. **训练并行体系完全空白**：数据并行、张量并行、流水线并行、ZeRO/FSDP、混合精度训练、梯度累积/激活重算等核心训练主题全未覆盖，需补「训练框架/并行策略」全量笔记，对应 megatron-lm 通信优化类题目无基础支撑。\n2. **推理核心概念缺失严重**：KV Cache 仅 1 项未掌握、2 项未覆盖，Continuous Batching、PagedAttention、Prefix Caching、推理量化全未覆盖，需补「推理架构/核心机制」笔记，直接影响 KV cache 计算、PD 分离策略类题目理解。\n3. **硬件基础与通信细节薄弱**：GPU 架构基础、Roofline 性能分析、NPU vs GPU 差异全未覆盖，NCCL 集合通信、NVSHMEM 完全无笔记，需补「GPU&异构计算/GPU架构」「集群通信/NVSHMEM」「集群通信/NCCL集合通信原语」笔记。\n4. **服务化与容错机制缺失**：模型服务化、请求容错、动态调度策略无对应笔记，需补「server/推理服务容错与调度」笔记，对应 decode 节点挂掉处理、动态 PD 分离策略类题目无体系支撑。",
   "questions": [
     {
       "id": "kb-kv-basic",
@@ -155,5 +155,5 @@
       "file": "2 框架/1.1 推理架构/优化方向/4 卡间通信开销大/question.md"
     }
   ],
-  "sentAt": 1794441619635
+  "sentAt": 1794441658395
 }
