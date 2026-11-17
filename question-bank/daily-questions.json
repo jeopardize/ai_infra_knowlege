@@ -1,6 +1,6 @@
 {
   "date": "2026-11-17",
-  "summary": "## 今日题目\n1. **通信｜为什么 NCCL 不适合做 KV 传输？至少说三点。**\n2. **大模型推理时，“KV 缓存（KV Cache）”是降低计算量、提升响应速度的核心机制。请解释 KV 缓存的存储原理，以及在长序列对话场景（如上下文长度超 4k）中，如何优化 KV 缓存的存储结构以减少内存占用？**\n3. **通信｜GPUDirect RDMA 的原理和限制条件是什么？**\n4. **通信｜控制面和数据面为什么必须分离？**\n5. **VLLM中KV Cache过期策略是什么**\n6. **AI 框架（如 TensorFlow/PyTorch）的算子优化是 AI Infra 的核心能力之一。假设需优化一个高频调用的“矩阵乘+激活函数（如 ReLU）”融合算子，从硬件适配（如 GPU CUDA 核心/TPU 脉动阵列）、数据布局（如 NHWC/NCHW）、指令调度三个维度，说明关键优化思路。**\n7. **进程之间那些常见通信方式**\n8. **MTP是否属于并行预测Token\\\\ \n如何在保持自回归生成情况下提升效率**\n9. **nccl中的通信源语有哪些？all-reduce参数更新一次参数需要几次通信？**\n10. **为什么要做dynamic 调度 \\\\\n固定batchsizze的问题在哪里\\\\\nmax token/token budget 怎么确定\\\\\ndynamic batch 和 packing 是什么关系？只做Dynamic Batch，不做packing行不行;\\\\\n只用token数作为Dynamic Batch的预算，真的能做到阉割计算负载均衡么？\\\\\npadding为什么会造成算力浪费\\\\\n负载均衡到底均衡什么\\\\**\n\n## 笔记缺失点总结\n1. **补 NCCL 与集合通信笔记**：现有 `ncll.md` 拼写错误且掌握度全未覆盖，需补充 NCCL 通信原语、all-reduce 通信次数、适用场景及 KV 传输不适用原因，对应今日第 1、9 题。\n2. **补 KV Cache 深度笔记**：现有 `KV Cache.md` 仅 1 项未掌握、2 项未覆盖，需补充长序列存储优化、过期策略、Prefix Caching 等内容，对应今日第 2、5 题。\n3. **补推理调度与负载均衡笔记**：Continuous Batching/Dynamic Batch、Packing、负载均衡全未覆盖，需完善 dynamic 调度原理、token budget 确定、padding 浪费原因等，对应今日第 10 题。\n4. **补算子融合优化笔记**：算子优化维度（硬件适配/数据布局/指令调度）内容薄弱，需补充矩阵乘+激活融合的 CUDA/TPU 优化思路，对应今日第 6 题。",
+  "summary": "## 今日题目\n1. **通信｜为什么 NCCL 不适合做 KV 传输？至少说三点。**\n2. **大模型推理时，“KV 缓存（KV Cache）”是降低计算量、提升响应速度的核心机制。请解释 KV 缓存的存储原理，以及在长序列对话场景（如上下文长度超 4k）中，如何优化 KV 缓存的存储结构以减少内存占用？**\n3. **通信｜GPUDirect RDMA 的原理和限制条件是什么？**\n4. **通信｜控制面和数据面为什么必须分离？**\n5. **VLLM中KV Cache过期策略是什么**\n6. **AI 框架（如 TensorFlow/PyTorch）的算子优化是 AI Infra 的核心能力之一。假设需优化一个高频调用的“矩阵乘+激活函数（如 ReLU）”融合算子，从硬件适配（如 GPU CUDA 核心/TPU 脉动阵列）、数据布局（如 NHWC/NCHW）、指令调度三个维度，说明关键优化思路。**\n7. **进程之间那些常见通信方式**\n8. **MTP是否属于并行预测Token\\\\ \n如何在保持自回归生成情况下提升效率**\n9. **nccl中的通信源语有哪些？all-reduce参数更新一次参数需要几次通信？**\n10. **为什么要做dynamic 调度 \\\\\n固定batchsizze的问题在哪里\\\\\nmax token/token budget 怎么确定\\\\\ndynamic batch 和 packing 是什么关系？只做Dynamic Batch，不做packing行不行;\\\\\n只用token数作为Dynamic Batch的预算，真的能做到阉割计算负载均衡么？\\\\\npadding为什么会造成算力浪费\\\\\n负载均衡到底均衡什么\\\\**\n\n## 笔记缺失点总结\n1. **补 NCCL 与集合通信笔记**：现有 `1 底层/1.2 集群通信/nccl.md` 未覆盖通信原语、NCCL 适用场景边界（如 KV 传输不适用的原因）、all-reduce 通信次数等核心点，需补充。\n2. **补 KV Cache 深度笔记**：现有 `1 底层/1.4 KV Cache/KV Cache.md` 仅覆盖 1/3 知识点，缺长序列存储优化、过期策略等，结合 vLLM KV 管理笔记完善体系。\n3. **补 Continuous Batching & Dynamic Batch 笔记**：推理优化方向下无连续批处理、dynamic scheduling、packing、负载均衡相关系统笔记，需新增到 `2 框架/1.1 推理架构/优化方向/` 目录。\n4. **补 GPUDirect RDMA & 控制面/数据面分离笔记**：现有集群通信笔记缺 GPUDirect RDMA 原理限制、控制面数据面分离设计，补充到 `1 底层/1.2 集群通信/`。",
   "questions": [
     {
       "id": "q-1788674761657-eiha",
@@ -155,5 +155,5 @@
       "file": "2 框架/1.1 推理架构/优化方向/6 请求编排与配比不当/question.md"
     }
   ],
-  "sentAt": 1794873619118
+  "sentAt": 1794873657714
 }
