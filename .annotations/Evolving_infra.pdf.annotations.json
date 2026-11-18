@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "source": "Evolving_infra.pdf",
+  "annotations": [
+    {
+      "id": "mwlry0to-hq94qm",
+      "page": 1,
+      "rects": [
+        {
+          "x": 0.6025853283959123,
+          "y": 0.3103650204958032,
+          "w": 0.3346819741072454,
+          "h": 0.018171171011303746
+        },
+        {
+          "x": 0.11751062119646342,
+          "y": 0.3254662573421113,
+          "w": 0.8200708318980365,
+          "h": 0.01817117101130372
+        },
+        {
+          "x": 0.11751062119646342,
+          "y": 0.3405674941884194,
+          "w": 0.7645786686186703,
+          "h": 0.018171171011303746
+        }
+      ],
+      "color": "#fde047",
+      "kind": "highlight",
+      "quote": "nd. Existing prefill–decode (PD) disaggre-\ngated serving systems offer limited flexibility for runtime adaptation of compute allocation and KV cache\nmanagement, and rely on coarse signals that only partly capture the diverse and dynamic agent wor",
+      "note": "",
+      "createdAt": 1794985371564
+    }
+  ]
+}
