@@ -1,6 +1,6 @@
 {
   "date": "2026-11-18",
-  "summary": "",
+  "summary": "## 今日题目\n1. **通信｜传输进行中 decode 节点挂了，请求怎么处理？**\n2. **KV cache 大小怎么算？**\n3. **Prefix caching 和 KV cache 有什么区别？**\n4. **什么 RMSNorm 在大模型里比 LayerNorm 更常见**\n5. **PP 流水线并行的通信逻辑和通信量计算思路**\n6. **如果业务混合了长短 prompt，你会设计怎样的策略来动态决定是否走 PD 分离，而不是一刀切？**\n7. **投机采样的加速比分析公式，MoE模型的投机采样遇到的性能问题**\n8. **为什么要做PD分离|| 再实际部署中，如何调整prefilll和decode的资源比例（比例设置会受到哪些因素影响）**\n9. **NPU和GPU的本质区别是**\n10. **讲一下 FlashAttention 的原理**\n\n---\n\n## 笔记缺失点总结\n1. **补 KV Cache 与 Prefix Caching 方向笔记**：现有 KV Cache 笔记仅覆盖 1/4 项，Prefix Caching 完全未覆盖，对应题目 2、3 直接相关。建议在 `1 底层/1.4 KV Cache/` 下补充 KV cache 计算公式、Prefix Caching 原理与差异对比内容。\n2. **补推理优化核心技术笔记**：投机解码、PD 分离策略、Continuous Batching、PagedAttention 均未覆盖，对应题目 1、6、7、8。建议在 `2 框架/1.1 推理架构/优化方向/` 下完善投机解码加速比分析、PD 分离动态策略、vLLM PagedAttention 原理等内容。\n3. **补流水线并行（PP）方向笔记**：训练侧 PP 完全未覆盖，推理 PP 通信逻辑也缺失，对应题目 5。建议在 `2 框架/1.1 推理架构/推理并行/5p推理.md` 中补充 PP 通信逻辑、通信量计算思路。\n4. **补硬件架构与 Norm 细节笔记**：NPU vs GPU 本质区别、RMSNorm 优势、FlashAttention 原理均缺乏系统整理，对应题目 4、9、10。建议补充 `1 底层/1.0 GPU&异构计算/` 下 NPU 架构对比，以及 `0 LLM/其余/Norm.md` 中 RMSNorm 与 LayerNorm 的差异分析，完善 Attention 笔记中 FlashAttention 原理。",
   "questions": [
     {
       "id": "q-1788674761658-kzt9",
@@ -155,5 +155,6 @@
       "category": "Attention",
       "file": "0 LLM/Attention/question.md"
     }
-  ]
+  ],
+  "sentAt": 1794960018215
 }
