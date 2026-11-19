@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "source": "paper/Evolving_infra.pdf",
+  "annotations": [
+    {
+      "id": "mwnc9cxw-3si9q4",
+      "page": 5,
+      "rects": [
+        {
+          "x": 0.11758710160109169,
+          "y": 0.6237664018426872,
+          "w": 0.39211429376117607,
+          "h": 0.0189008891009027
+        }
+      ],
+      "color": "#fde047",
+      "kind": "highlight",
+      "quote": "Every phase switch takes time, loses KV reuse, or both (",
+      "note": "",
+      "createdAt": 1795079958980
+    }
+  ]
+}
