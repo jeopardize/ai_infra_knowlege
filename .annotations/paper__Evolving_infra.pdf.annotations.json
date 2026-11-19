@@ -18,6 +18,23 @@
       "quote": "Every phase switch takes time, loses KV reuse, or both (",
       "note": "",
       "createdAt": 1795079958980
+    },
+    {
+      "id": "mwnc9juz-wqbsfi",
+      "page": 5,
+      "rects": [
+        {
+          "x": 0.5978834078115463,
+          "y": 0.6237664018426872,
+          "w": 0.28395259149899404,
+          "h": 0.0189008891009027
+        }
+      ],
+      "color": "#fde047",
+      "kind": "highlight",
+      "quote": "ecause engines fix their phase at launch",
+      "note": "",
+      "createdAt": 1795079967947
     }
   ]
 }
