@@ -35,6 +35,23 @@
       "quote": "ecause engines fix their phase at launch",
       "note": "",
       "createdAt": 1795079967947
+    },
+    {
+      "id": "mwnc9mt2-qi0hkw",
+      "page": 5,
+      "rects": [
+        {
+          "x": 0.11758710160109169,
+          "y": 0.6387542296720097,
+          "w": 0.2071624030122193,
+          "h": 0.0189008891009027
+        }
+      ],
+      "color": "#fde047",
+      "kind": "highlight",
+      "quote": "and index cached KV locally",
+      "note": "",
+      "createdAt": 1795079971766
     }
   ]
 }
