@@ -28,5 +28,11 @@
     "content": "上传图片会报错。报错信息：图片上传失败：Unexpected token '<', \"<!doctype \"... is not valid JSON",
     "createdAt": 1795073862625,
     "status": "open"
+  },
+  {
+    "id": "fb_1795079905466_1edaf1",
+    "content": "pdf的位置发生改变后，他的标注无法跟随移动会直接消失",
+    "createdAt": 1795079905466,
+    "status": "open"
   }
 ]
