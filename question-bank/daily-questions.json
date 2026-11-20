@@ -1,6 +1,6 @@
 {
   "date": "2026-11-20",
-  "summary": "",
+  "summary": "## 今日题目\n1. **KV cache 大小怎么算？**\n2. **通信｜传输进行中 decode 节点挂了，请求怎么处理？**\n3. **如果推理时出现 OOM，你会怎么排查**\n4. **如果业务混合了长短 prompt，你会设计怎样的策略来动态决定是否走 PD 分离，而不是一刀切？**\n5. **cuda的global memory和shared memory访存分别需要注意什么？**\n6. **PP 流水线并行的通信逻辑和通信量计算思路**\n7. **AI 框架（如 TensorFlow/PyTorch）的算子优化是 AI Infra 的核心能力之一。假设需优化一个高频调用的“矩阵乘+激活函数（如 ReLU）”融合算子，从硬件适配（如 GPU CUDA 核心/TPU 脉动阵列）、数据布局（如 NHWC/NCHW）、指令调度三个维度，说明关键优化思路。**\n8. **NPU和GPU的本质区别是**\n9. **将Ampere架构的算子适配到Hopper架构的卡上，你会对哪些地方进行升级改造？**\n10. **多维tensor的transpose kernel怎么设计，是否需要根据i, j的位置设计不同的kernel**\n\n## 笔记缺失点总结\n1. **补训练侧并行体系笔记**：PP流水线并行通信逻辑与计算、DP/TP/ZeRO/FSDP训练并行全为未覆盖，今日第6题直接命中，需在「2 框架/1.2 训练框架」下新增流水线并行、数据并行、张量并行、ZeRO系列专题。\n2. **补GPU硬件架构深度笔记**：GPU架构基础、Roofline分析、Ampere→Hopper架构升级点均未覆盖，今日第5、7、8、9题均涉及，需在「1 底层/1.0 GPU&异构计算」下新增GPU微架构、不同代架构差异（Ampere/Hopper）、NPU vs GPU对比、Roofline模型专题。\n3. **补推理核心机制笔记**：PagedAttention、Continuous Batching、Prefix Caching、推理量化均未覆盖，与OOM排查、KV cache计算、PD分离策略强相关，需在「2 框架/1.1 推理架构/优化方向」下补全上述专题。\n4. **补服务容错与请求编排笔记**：decode节点故障处理、长短prompt动态PD分离策略现有笔记较薄，需在「2 框架/1.1 推理架构/优化方向/6 请求编排与配比不当」下新增故障容错、动态PD分离决策策略内容。",
   "questions": [
     {
       "id": "kb-kv-basic",
@@ -153,5 +153,6 @@
       "category": "其他",
       "file": "data/other_question.md"
     }
-  ]
+  ],
+  "sentAt": 1795132818607
 }
