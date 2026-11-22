@@ -97,7 +97,10 @@ x' = (q - zero_point)*scale
 // Bit-width：位宽，决定熟知范围
 ```
 
-#  单机内存管理KV Cache 的管理策略
+ok，那根据这个数学原理，我们知道需要知道 max_val 和 min_val, 跟预测问题一样，我要么根据历史数据得知，但是这会有数据便宜，要么实时计算，这样量化又可以分为动态量化和静态量化
+
+
+#  引擎里的 KV 存储技术
 
 > [!Note]
 >
@@ -114,8 +117,7 @@ KV Cache 是指大模型推理时，把 Transformer 每一层 Attention 中已�
 ![](images/image-20260416091856559_副本.png)
 
 
-
-## PagedAttention 详解：操作系统思想在显存管理中的应用
+## PagedAttention --vllm
 
 这意味着：
 
@@ -137,16 +139,63 @@ for i in (0, seq_len):
     attention(kv_cache[i])
 ```
 
-## KV Cache 生命周期：分配、追加、释放与抢占（Preemption）
+## RadixAttention --SGlang
+
+##vAttention
+
+# Attention Store系统
 
 
-# 减少 KV Cache 显存开销的的优化技术 
+# 常用模型kv cache 计算
+
+## DeepSeek-V4-Pro
+
+第一步：每层存什么。 V4-Pro 有 61 层注意力，每层 = 一个局部滑窗（SWA）分支 + 一个全局压缩分支；全局分支按压缩比分两种——30 层 CSA（压缩比 4，记 C4）+ 31 层 HCA（压缩比 128，记 C128），30 个 C4 层还各带一个 lightning indexer。落到显存上是 7 个 cache pool，”单 slot”一列是该 pool 的一条条目跨全部层的字节数：
+
+| Cache Pool | dtype | 条目宽 | 层数 | 单 slot |
+|:---|:---|:---|:---|:---|
+| SWA-KV-Cache | uint8（1B） | 584 | 61（MTP 态 62） | 35,624 / 36,208 B |
+| C128-Cache | uint8（1B） | 584 | 31 | 18,104 B |
+| C4-Cache | uint8（1B） | 584 | 30 | 17,520 B |
+| C4-index-Cache | uint8（1B） | 132 | 30 | 3,960 B |
+| C128-State | FP32（4B） | 512 × 2 | 31 | 126,976 B |
+| C4-State | FP32（4B） | 512 × 2 × 2 | 30 | 245,760 B |
+| C4-index-State | FP32（4B） | 128 × 2 × 2 | 30 | 61,440 B |
+
+第二步：固定存储项。 固定项只由两件事构成——滑窗内驻留的 SWA KV，以及三个 State 环形缓冲。环深分别是 window_size = 128、C4_ring_size = 8、C128_ring_size = 128：
+
+KV_fixed = SWA_slot × window_size
+         + (C4_State_slot + C4_index_State_slot) × C4_ring_size
+         + C128_State_slot × C128_ring_size
+
+         = 35,624 × 128  +  (245,760 + 61,440) × 8  +  126,976 × 128
+         = 4,559,872     +  2,457,600               +  16,252,928
+         = 23,270,400 B  ≈ 22.2 MiB（文档记作 22.2MB）
+拆占比：C128-State 环 15.5 MiB（70%）、SWA 滑窗 4.35 MiB（20%）、C4 两个 State 环 2.34 MiB（10%）。这里藏着一个反直觉的事实：C128-State 环（15.5 MiB）比它服务的 C128 压缩 KV 本身还大——100K 上下文下 C128-Cache 全长只有 13.8 MiB（交叉点约在 11.5 万 token）。固定开销的大头不是”要缓存的历史”，而是”维护压缩状态所需的无损缓冲”。
+
+第三步：线性增长存储项。 7 个池里只有三个全局池随上下文增长，压缩比决定它们每多少 token 才落一条条目：
+
+KV_linear = C128_slot × CTX/128 + (C4_slot + C4_index_slot) × CTX/4
+          = 18,104 × CTX/128    + (17,520 + 3,960) × CTX/4
+          = 141.4 × CTX         + 5,370 × CTX
+          = 5,511 B / token     ≈ CTX × 5.4KB
+两项相加，就是那条官方线性公式：
 
 
+第四步：100K 上下文（102,400 token）一条请求的账。 固定项 22.2 MiB，线性项 538.2 MiB，合计 ≈560 MiB（≈587.6 MB）：
 
-
-
+线性部分 538.2 MiB（564.4 MB = 102,400 × 5,511 B）
+   C4-Cache：       17,520 B × 25,600（= CTX/4）  = 448.5 MB  （79.5%）
+   C4-index-Cache：  3,960 B × 25,600             = 101.4 MB  （18.0%）
+   C128-Cache：     18,104 B ×    800（= CTX/128）=  14.5 MB  （ 2.6%）
+固定部分 22.2 MiB（23,270,400 B）
+   SWA 滑窗 128 token × 35,624 B                  =   4.35 MiB
+   C4 + C4-index State 环 8 槽                    =   2.34 MiB
+   C128 State 环 128 槽                           =  15.50 MiB
+合计 ≈ 560 MiB / 请求
 
 # 相关学习资料
 
 https://github.com/ForceInjection/AI-fundamentals/blob/main/09_inference_system/kv_cache/README.md
+
+https://zhuanlan.zhihu.com/p/2082615179595073265
