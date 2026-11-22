@@ -1,6 +1,6 @@
 {
   "date": "2026-11-22",
-  "summary": "",
+  "summary": "## 今日题目\n1. **KV cache 大小怎么算？**\n2. **通信｜传输进行中 decode 节点挂了，请求怎么处理？**\n3. **4机32卡H200训练从FSDP换成HSDP，通信时间会减少多少**\n4. **nccl中的通信源语有哪些？all-reduce参数更新一次参数需要几次通信？**\n5. **如果推理时出现 OOM，你会怎么排查**\n6. **通信｜EP（专家并行）的 AllToAll 和 TP 的 AllReduce，通信量和频率差多少？对网络要求的区别？**\n7. **多GPU通信时NVSHMEM和NVLink的区别**\n8. **为什么要做dynamic 调度 \\\\\n固定batchsizze的问题在哪里\\\\\nmax token/token budget 怎么确定\\\\\ndynamic batch 和 packing 是什么关系？只做Dynamic Batch，不做packing行不行;\\\\\n只用token数作为Dynamic Batch的预算，真的能做到阉割计算负载均衡么？\\\\\npadding为什么会造成算力浪费\\\\\n负载均衡到底均衡什么\\\\**\n9. **MTP是否属于并行预测Token\\\\ \n如何在保持自回归生成情况下提升效率**\n10. **cuda的global memory和shared memory访存分别需要注意什么？**\n\n---\n\n## 笔记缺失点总结\n1. **训练并行（FSDP/HSDP/数据并行等）完全空白**：去补`2 框架/1.2 训练框架`下的FSDP、HSDP、数据并行相关笔记，否则第3题完全无知识支撑。\n2. **NCCL集合通信知识体系严重不足**：补充`1 底层/1.2 集群通信/nccl.md`的集合通信原语、通信次数计算、AllToAll vs AllReduce对比内容，覆盖第4、6题考点。\n3. **动态调度（Continuous Batching）与负载均衡无笔记**：补`2 框架/1.1 推理架构/优化方向/6 请求编排与配比不当`下的dynamic batch、packing、token budget、负载均衡细节，对应第8题。\n4. **CUDA访存优化（global/shared memory）要点缺失**：完善`1 底层/1.0 GPU&异构计算/CUDA.md`中显存层级与访存注意事项的内容，覆盖第10题。",
   "questions": [
     {
       "id": "kb-kv-basic",
@@ -155,5 +155,6 @@
       "category": "1.0 GPU&异构计算",
       "file": "1 底层/1.0 GPU&异构计算/question.md"
     }
-  ]
+  ],
+  "sentAt": 1795305616396
 }
