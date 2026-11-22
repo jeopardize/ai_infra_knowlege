@@ -232,38 +232,40 @@ Prefill 池（max cache reuse，s.t. TTFT SLO）+ Decode 池（max throughput，
 Conductor 全局调度器：以前缀命中长度、实例负载、传输时间、SLO 统一权衡路由——TTFT = 排队 + prefill（+ 传输）；SLO 不可达直接 HTTP 429 提前拒绝；
 热点迁移：请求路由到非最佳实例时顺带拉取 KV 复制热块（trace 显示 >50% 缓存块从未复用、最热块被访问数万次——复制热块收益极高）。
 
-图 7：Mooncake 四件套——Conductor 全局调度 + Prefill/Decode 分离池 + 分布式 KVCache 池，五步请求工作流
+> Mooncake 四件套——Conductor 全局调度 + Prefill/Decode 分离池 + 分布式 KVCache 池，五步请求工作流
 数据按 512-token 块组织，前缀哈希级联去重；Layer-wise Prefill 让逐层 load/store 与计算重叠，prefill 时间 ≈ max(加载, 计算)。长上下文流水（CPP）把多节点 prefill 流水化。
 
 效果：已在数千节点部署、日处理超千亿 token；长上下文模拟吞吐 +50%~+525%；真实负载多处理 75% 请求且 TBT 达标率 ~100%（vLLM 57%）；平均 TTFT 6.26s vs 负载均衡 60.41s。
 
 工程视角的双重身份（SGLang 集成）：Mooncake 既可以是 HiCache 的 L3 持久后端（共享缓存池，跨实例/重启复用，--hicache-storage-backend mooncake），也可以是 PD 分离的 KV 传输通道（请求级一次性搬运，--disaggregation-transfer-backend mooncake）——前者是”可复用资产”，后者是”过路数据”。Kimi K3 编程场景靠这套分离架构做到 >90% 缓存率。
 
-3.4 LMCache：引擎中立的 KV 存储传输层
+## LMCache：引擎中立的 KV 存储传输层
 LMCache（arXiv 2510.09665，TensorMesh+芝加哥大学）不是引擎，而是横跨引擎与存储后端的可插拔中间件——把 KV Cache 从”GPU 显存里的临时中间状态”升级为可持久化、可迁移、可调度的基础设施资源。
 
 它抓住了一个被忽视的物理约束：PagedAttention 的页粒度 I/O 太小，无法饱和带宽——16-token 页仅 62.5KB，而实测消息 ≥16MB 才能饱和 400Gbps NIC。
 
+> 传输粒度决定带宽——页级小消息只能吃到 88Gbps，聚合成 16MB 大消息才能饱和 400Gbps
 
-图 8：传输粒度决定带宽——页级小消息只能吃到 88Gbps，聚合成 16MB 大消息才能饱和 400Gbps
 核心机制：
 
-批量化搬运：多页多层聚合为 chunk（默认 256 token），定制聚合/打散 CUDA kernel + DMA，延迟批写；
-计算-IO 重叠：逐层流水（只需单层 KV 大小的 GPU 缓冲）+ 排队期预取；
-零拷贝（引用计数）与三指针动态 offloading 状态机；
-标准化接口：KV Connector API（7 个函数，已被 NVIDIA Dynamo / llm-d / AIBrix / vLLM Production Stack 采纳）+ 分布式 Cache Controller（lookup/move/pin/batched_evict），支撑 KV-aware 路由与跨实例共享。
-效果：CPU→GPU 加载带宽 400 Gbps（vLLM 原生 88 Gbps——根源就是页粒度 vs chunk 粒度）；TTFT 降低 1.9–8.1×、吞吐提升 2.3–14×；PD 分离下 mean TTFT 再降 1.53–1.84×。
+- 批量化搬运：多页多层聚合为 chunk（默认 256 token），定制聚合/打散 CUDA kernel + DMA，延迟批写；
+-计算-IO 重叠：逐层流水（只需单层 KV 大小的 GPU 缓冲）+ 排队期预取；
+- 零拷贝（引用计数）与三指针动态 offloading 状态机；
+- 标准化接口：KV Connector API（7 个函数，已被 NVIDIA Dynamo / llm-d / AIBrix / vLLM Production Stack 采纳）+ 分布式 Cache Controller（lookup/move/pin/batched_evict），支撑 KV-aware 路由与跨实例共享。
 
-设计哲学：主要缓存 Prefill KV（system prompt、文档片段——下次请求必然复用）而非 Decode KV（复用率极低且频繁写盘造成 I/O 竞争）。生产数据：Agent 负载（Codex SWE-bench Pro trace）input/output 比 131:1、缓存命中率 94.2%、轮间隔中位数仅几秒——这是 LMCache 们的目标画像。
+**效果:** CPU→GPU 加载带宽 400 Gbps（vLLM 原生 88 Gbps——根源就是页粒度 vs chunk 粒度）；TTFT 降低 1.9–8.1×、吞吐提升 2.3–14×；PD 分离下 mean TTFT 再降 1.53–1.84×。
 
-3.5 HiCache：分层基数树（SGLang/阿里云 Tair）
-HiCache 把 RadixAttention 的基数树扩展为 HiRadixTree（分层基数树）：L1 GPU HBM（热数据）→ L2 CPU 锁页内存（--hicache-ratio 2.0，L2 = ratio × L1）→ L3 外部存储（file/mooncake/hf3fs/nixl 等后端）。一个 TreeNode 的 value / host_value / hash_value 三字段分别锚定三层（见 §2.2）。
+**设计哲学:** 主要缓存 Prefill KV（system prompt、文档片段——下次请求必然复用）而非 Decode KV（复用率极低且频繁写盘造成 I/O 竞争）。生产数据：Agent 负载（Codex SWE-bench Pro trace）input/output 比 131:1、缓存命中率 94.2%、轮间隔中位数仅几秒——这是 LMCache 们的目标画像。
+
+## HiCache：分层基数树（SGLang/阿里云 Tair）
+HiCache 把 RadixAttention 的基数树扩展为 HiRadixTree（分层基数树）：L1 GPU HBM（热数据）→ L2 CPU 锁页内存（--hicache-ratio 2.0，L2 = ratio × L1）→ L3 外部存储（file/mooncake/hf3fs/nixl 等后端）。一个 TreeNode 的 value / host_value / hash_value 三字段分别锚定三层。
 
 关键机制：
+- 双 CUDA stream：write_stream（device→host DMA）与 load_stream（host→device，按 layer 分步）分离，配合 ack 队列 + TP all_reduce 同步；
+- write_through 策略：平时异步备份到 host，evict 时只释放 device 槽、保留 host 数据（evict_device()）；命中已驱逐节点时沿父链收集并 DMA 回来（load_back）；
+- L3 预取状态机：先探测命中长度、命中页数 ≥ 256 token（prefetch_threshold）才分配 host 内存并真正预取——避免为小命中浪费带宽与内存。
 
-双 CUDA stream：write_stream（device→host DMA）与 load_stream（host→device，按 layer 分步）分离，配合 ack 队列 + TP all_reduce 同步；
-write_through 策略：平时异步备份到 host，evict 时只释放 device 槽、保留 host 数据（evict_device()）；命中已驱逐节点时沿父链收集并 DMA 回来（load_back）；
-L3 预取状态机：先探测命中长度、命中页数 ≥ 256 token（prefetch_threshold）才分配 host 内存并真正预取——避免为小命中浪费带宽与内存。
+![HiRadixTree](images/HiRadixTree.png)
 
 > HiRadixTree——同一个 TreeNode 的三个字段锚定三层存储，前缀在层间升降级而不换数据结构
 > 
