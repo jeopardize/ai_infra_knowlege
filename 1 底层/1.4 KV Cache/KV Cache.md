@@ -170,7 +170,7 @@ extra_key（LoRA id / cache salt）进入键空间实现命名空间隔离；树
 
 ```
 
-##vAttention：把分页做进 MMU
+## vAttention：把分页做进 MMU
 PagedAttention 把虚拟内存布局从连续变为非连续，代价是注意力 kernel 必须感知分页（block table 间接寻址），编程复杂且损失 kernel 性能。vAttention（Microsoft，arXiv 2405.04437）走另一条路：用 CUDA Virtual Memory Management API 解耦虚拟/物理内存分配——虚拟地址空间预先分配连续大块，物理显存按需映射。物理层碎片通过延迟映射解决，而虚拟连续性保留：原生兼容未改造的注意力 kernel（FlashAttention 等），吞吐比 PagedAttention kernel 最高 1.23×。
 
 两条路线的对比本质是：PagedAttention 把分页做进 kernel，vAttention 把分页做进 MMU。后者依赖 CUDA VM API 且物理碎片仅缓解不消除，但思路代表了”OS 虚拟内存思想进一步下沉”。
@@ -194,6 +194,16 @@ KDA（Kimi K3）打破 per-token 假设：K3（2.8T 参数、1M 上下文）的�
 
 # Attention Store系统
 单卡 HBM 装不下 KV Cache 时，就需要把它扩展到 CPU DRAM、SSD 和分布式存储——这类系统统称 Attention Store。核心思想是“以存换算”：用更多的存储资源换取更少的计算。
+
+## 存储层次
+| 层级 | 介质 | 典型容量 | 典型带宽 |
+|---|---|---|---|
+| L1 | GPU HBM | 80-96 GB | 2-3.3 TB/s |
+| L2 | CPU DRAM | 0.5-2 TB | 50 GB/s |
+| L3 | NVMe SSD | 4-100 TB | 7 GB/s(单盘) ~25 GB/s(RAID) |
+| L4 | 分布式池/远端对象存储 | PB级 | 10-100 Gbps |
+
+![store_layer](images/store_layer.png)
 
 
 # 常用模型kv cache 计算
