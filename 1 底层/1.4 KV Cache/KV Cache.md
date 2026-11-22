@@ -205,6 +205,97 @@ KDA（Kimi K3）打破 per-token 假设：K3（2.8T 参数、1M 上下文）的�
 
 ![store_layer](images/store_layer.png)
 
+带宽落差是数量级的（NVMe→HBM 差约 480×），因此所有系统都在做同一件事：用预取、重叠、粒度设计把搬运藏进计算。三个反复出现的技术母题：
+
+1. 重叠隐藏：逐层 load/store 与计算重叠（Mooncake/LMCache/CachedAttention/LayerKV）、多 CUDA stream 并行、预取窗口；
+2. 未来信息 > 历史信息：用调度器队列的前瞻而非 LRU 的历史做放置与驱逐，命中率差距是数量级的（86% vs 48–58%）；
+3. 粒度选择：传输粒度要大（聚合到 chunk 才能饱和带宽），管理粒度要细（页/层/会话各取所需）。
+
+3.2 CachedAttention / AttentionStore：会话级 KV 外存的奠基
+CachedAttention（USENIX ATC 2024，NUS/上交/华为云）盯住多轮对话：ShareGPT 中 73% 为多轮，每轮结束后 KV 被丢弃，下一条消息要对全部历史重新 prefill——历史 token 占比超 99%，重复计算占 TTFT 的 99%。
+
+架构：Controller（调度器）+ AttentionStore Manager（DRAM+SSD 两级）+ GPU 集群（含专用读写 buffer），Load/Save 走独立 CUDA stream，Fetch/Evict 走独立 IO 线程。四大机制：
+
+逐层预载：算第 
+ 层时并发预载第 
+ 层；
+异步保存：prefill 产生的 KV 逐层与 decode 重叠写回；
+调度器感知放置/驱逐（本质创新）：用 job queue 的”未来信息”替代 LRU/FIFO 的历史信息，窗口内即将被访问的 KV 豁免驱逐——命中率 86% vs LRU 58% / FIFO 48%；
+位置编码解耦：存不含 RoPE 的 K/V，加载时再嵌入新位置编码，上下文截断不使缓存失效。
+效果：KV 命中率 71–90%，TTFT 降低 61–87%，prefill 吞吐提升 2.6–7.8×，成本最多降 70%（存储开销仅占总成本 9–16.4%）。HBM-only 命中率约 0%，加 10TB SSD 后达 71–90%——跨 DRAM/SSD 分层是命中率的根本来源。局限：单机本地、无跨节点路由（Mooncake 沿此方向工业化）。
+
+3.3 Mooncake：KVCache-Centric 分离架构的生产标杆
+Mooncake（FAST 2025 最佳论文，月之暗面+清华）是 Kimi 的生产推理平台，核心洞察：调度请求本质上是调度 KVCache 在哪里、谁来算、传给谁。架构四件套：
+
+Prefill 池（max cache reuse，s.t. TTFT SLO）+ Decode 池（max throughput，s.t. TBT SLO）；
+全局分布式 KVCache 池：把 GPU 服务器闲置的 CPU/DRAM/SSD/NIC 池化，通过 GPUDirect RDMA 传输（Messenger 组件）；
+Conductor 全局调度器：以前缀命中长度、实例负载、传输时间、SLO 统一权衡路由——TTFT = 排队 + prefill（+ 传输）；SLO 不可达直接 HTTP 429 提前拒绝；
+热点迁移：请求路由到非最佳实例时顺带拉取 KV 复制热块（trace 显示 >50% 缓存块从未复用、最热块被访问数万次——复制热块收益极高）。
+
+图 7：Mooncake 四件套——Conductor 全局调度 + Prefill/Decode 分离池 + 分布式 KVCache 池，五步请求工作流
+数据按 512-token 块组织，前缀哈希级联去重；Layer-wise Prefill 让逐层 load/store 与计算重叠，prefill 时间 ≈ max(加载, 计算)。长上下文流水（CPP）把多节点 prefill 流水化。
+
+效果：已在数千节点部署、日处理超千亿 token；长上下文模拟吞吐 +50%~+525%；真实负载多处理 75% 请求且 TBT 达标率 ~100%（vLLM 57%）；平均 TTFT 6.26s vs 负载均衡 60.41s。
+
+工程视角的双重身份（SGLang 集成）：Mooncake 既可以是 HiCache 的 L3 持久后端（共享缓存池，跨实例/重启复用，--hicache-storage-backend mooncake），也可以是 PD 分离的 KV 传输通道（请求级一次性搬运，--disaggregation-transfer-backend mooncake）——前者是”可复用资产”，后者是”过路数据”。Kimi K3 编程场景靠这套分离架构做到 >90% 缓存率。
+
+3.4 LMCache：引擎中立的 KV 存储传输层
+LMCache（arXiv 2510.09665，TensorMesh+芝加哥大学）不是引擎，而是横跨引擎与存储后端的可插拔中间件——把 KV Cache 从”GPU 显存里的临时中间状态”升级为可持久化、可迁移、可调度的基础设施资源。
+
+它抓住了一个被忽视的物理约束：PagedAttention 的页粒度 I/O 太小，无法饱和带宽——16-token 页仅 62.5KB，而实测消息 ≥16MB 才能饱和 400Gbps NIC。
+
+
+图 8：传输粒度决定带宽——页级小消息只能吃到 88Gbps，聚合成 16MB 大消息才能饱和 400Gbps
+核心机制：
+
+批量化搬运：多页多层聚合为 chunk（默认 256 token），定制聚合/打散 CUDA kernel + DMA，延迟批写；
+计算-IO 重叠：逐层流水（只需单层 KV 大小的 GPU 缓冲）+ 排队期预取；
+零拷贝（引用计数）与三指针动态 offloading 状态机；
+标准化接口：KV Connector API（7 个函数，已被 NVIDIA Dynamo / llm-d / AIBrix / vLLM Production Stack 采纳）+ 分布式 Cache Controller（lookup/move/pin/batched_evict），支撑 KV-aware 路由与跨实例共享。
+效果：CPU→GPU 加载带宽 400 Gbps（vLLM 原生 88 Gbps——根源就是页粒度 vs chunk 粒度）；TTFT 降低 1.9–8.1×、吞吐提升 2.3–14×；PD 分离下 mean TTFT 再降 1.53–1.84×。
+
+设计哲学：主要缓存 Prefill KV（system prompt、文档片段——下次请求必然复用）而非 Decode KV（复用率极低且频繁写盘造成 I/O 竞争）。生产数据：Agent 负载（Codex SWE-bench Pro trace）input/output 比 131:1、缓存命中率 94.2%、轮间隔中位数仅几秒——这是 LMCache 们的目标画像。
+
+3.5 HiCache：分层基数树（SGLang/阿里云 Tair）
+HiCache 把 RadixAttention 的基数树扩展为 HiRadixTree（分层基数树）：L1 GPU HBM（热数据）→ L2 CPU 锁页内存（--hicache-ratio 2.0，L2 = ratio × L1）→ L3 外部存储（file/mooncake/hf3fs/nixl 等后端）。一个 TreeNode 的 value / host_value / hash_value 三字段分别锚定三层（见 §2.2）。
+
+关键机制：
+
+双 CUDA stream：write_stream（device→host DMA）与 load_stream（host→device，按 layer 分步）分离，配合 ack 队列 + TP all_reduce 同步；
+write_through 策略：平时异步备份到 host，evict 时只释放 device 槽、保留 host 数据（evict_device()）；命中已驱逐节点时沿父链收集并 DMA 回来（load_back）；
+L3 预取状态机：先探测命中长度、命中页数 ≥ 256 token（prefetch_threshold）才分配 host 内存并真正预取——避免为小命中浪费带宽与内存。
+
+图 9：HiRadixTree——同一个 TreeNode 的三个字段锚定三层存储，前缀在层间升降级而不换数据结构
+最易误解的点：SGLang 中 L3 有两条互斥集成路径——HiCache 的存储后端（HiCacheStorage，page 哈希寻址、同步 batch get/set）与 RadixCache 装饰器（LMCache/FlexKV 以 RadixCache 子类整体替代 L2+L3，只覆盖 match_prefix/init_load_back/cache_finished_req/evict 四个方法，用 token 序列寻址 + LOOKUP→RETRIEVE 两阶段）。一个进程只实例化一个 cache 类，不能自由组合。
+
+阿里云 Tair 团队加入后演进为分布式版本：真实生产（Novita AI）中命中率 40%→80%，TTFT 降 56%，QPS 翻倍。
+
+3.6 端到盘与直通存储：KVSwap 与 Phoenix
+KVSwap（arXiv 2511.11907）面向端侧：统一内存设备上 GPU→CPU 卸载无意义，必须下盘，而盘带宽比内存低 2–3 个量级。做法是全量 KV 存盘 + 内存只留”低秩 K 摘要（只做预测、不参与计算，可激进压缩 σ 高达 32）+ 分组关键 KV 预测（对齐磁盘块读）+ 滚动/复用缓冲”。Jetson Orin 上 vs 最强基线提速 1.8×（NVMe）/4.1×（eMMC）。
+
+Phoenix（http://xPU.IO，SC’25 + LMCache PR #4673）：SSD 是 Agent 时代唯一划算的大容量介质（单机 100TB 级），但传统路径”盘→主机内存→显存”两次穿 PCIe + CPU 全程参与——实测 4×NVMe RAID0 裸盘 25GB/s，端到端只剩 10.2GB/s；Codex 回放中 TTFT 1101ms 里加载占 600ms、真正 prefill 只 313ms。Phoenix 基于 Linux 标准 I/O 栈 + ZONE_DEVICE 为显存建 struct page，让 GPU 显存指针成为合法 I/O 地址，直接走 pread/io_uring：8×H20 生产 trace 下，平均 TTFT 是 SSD 中转的 2.2×、纯 DRAM 的 5.6×；TTFT 5s 红线下并发 7（DRAM-only）→13（SSD 中转）→37（Phoenix）。机制收益的本质：加载快于计算后，”KV 加载与前一批推理 overlap”的调度重新生效。
+
+3.7 其他系统一览
+NVIDIA CMX：DPU 做多租户调度 + SSD 大容量，KV 管理从引擎解耦为专用存储栈；
+英特尔 KV Shrink：QAT 硬件加速 + 分层卸载，L1(HBM)→L2(DDR)→L3/L4(SSD/分布式) 四级；
+中科曙光 ParaCache：依托 ParaStor 的四级缓存，”从存数据到存智能”，KV 作为可复用数据资产管理；
+华为 UCM：昇腾 NPU 的 KV 池化，经 KV Connector 对接 Mooncake 等后端，灵衢总线跨节点传输。
+3.8 命中率经济学：Attention Store 的商业闭环
+Attention Store 的价值最终由命中率 × 定价决定，工业界给出了几个反直觉结论：
+
+命中部分定价仅为未命中的 10%–25%（无问芯穹，服务 GLM/Kimi）。由此推出浴盆模型：TPS_hit 随命中率单调上升，TPS_miss 近似线性下降；命中率 40%→70% 时未命中吞吐再降 20%，而命中部分提升不足 3 倍——中段（”偶然失效区间”）可能命中率越高越亏钱；且存在 20%/40%/70% 奇异点（末尾残块不满 chunk 独立计算）。优化方向：把浴盆变浅、加大 cache 容量逃离盆底、cache-aware 负载均衡。
+
+
+图 10：浴盆模型——命中部分吞吐上升、未命中部分吞吐下降，中段”偶然失效区间”可能越命中越亏；20/40/70% 为残块奇异点
+命中率天花板由 trace 决定，容量只是入场券（kvcache.ai 模拟器逆向）：Mooncake 真实 trace 的复用天花板（无限容量）仅 59.1%——Belady 最优在 16GiB 就到顶（有效复用工作集极小，仅 ~3.7% 唯一块有未来复用价值），LRU 却要 256GiB 才追平（分不清”将复用”与”死块”）。trace 的复用结构决定上限，模型结构只决定多少 GiB 换多少块。 Agent 负载改变命中率来源：传统对话输入 8K、命中率 50%；Agent 任务输入 64–128K、输出 ≤1K、命中率 90%。但前缀易变字段破坏命中：Agent ID、工作目录、时间戳、工具 schema 每次微变即 miss。TokenPilot（浙大）证明仅把易变字段替换成静态占位符 + 摄入边界确定性整理，就把宏观命中率 38.7%→79.2%、费用降 61–87%——上下文管理与 KV 存储是同一枚硬币的两面。
+
+
+
+
+
+
+
+
 
 # 常用模型kv cache 计算
 ## glm53 计算
