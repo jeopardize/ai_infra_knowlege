@@ -265,28 +265,33 @@ HiCache 把 RadixAttention 的基数树扩展为 HiRadixTree（分层基数树�
 write_through 策略：平时异步备份到 host，evict 时只释放 device 槽、保留 host 数据（evict_device()）；命中已驱逐节点时沿父链收集并 DMA 回来（load_back）；
 L3 预取状态机：先探测命中长度、命中页数 ≥ 256 token（prefetch_threshold）才分配 host 内存并真正预取——避免为小命中浪费带宽与内存。
 
-图 9：HiRadixTree——同一个 TreeNode 的三个字段锚定三层存储，前缀在层间升降级而不换数据结构
+> HiRadixTree——同一个 TreeNode 的三个字段锚定三层存储，前缀在层间升降级而不换数据结构
+> 
 最易误解的点：SGLang 中 L3 有两条互斥集成路径——HiCache 的存储后端（HiCacheStorage，page 哈希寻址、同步 batch get/set）与 RadixCache 装饰器（LMCache/FlexKV 以 RadixCache 子类整体替代 L2+L3，只覆盖 match_prefix/init_load_back/cache_finished_req/evict 四个方法，用 token 序列寻址 + LOOKUP→RETRIEVE 两阶段）。一个进程只实例化一个 cache 类，不能自由组合。
 
 阿里云 Tair 团队加入后演进为分布式版本：真实生产（Novita AI）中命中率 40%→80%，TTFT 降 56%，QPS 翻倍。
 
-3.6 端到盘与直通存储：KVSwap 与 Phoenix
-KVSwap（arXiv 2511.11907）面向端侧：统一内存设备上 GPU→CPU 卸载无意义，必须下盘，而盘带宽比内存低 2–3 个量级。做法是全量 KV 存盘 + 内存只留”低秩 K 摘要（只做预测、不参与计算，可激进压缩 σ 高达 32）+ 分组关键 KV 预测（对齐磁盘块读）+ 滚动/复用缓冲”。Jetson Orin 上 vs 最强基线提速 1.8×（NVMe）/4.1×（eMMC）。
+## 端到盘与直通存储：KVSwap 与 Phoenix
+KVSwap（arXiv 2511.11907）面向端侧：%%r:统一内存设备上 GPU→CPU 卸载无意义，必须下盘%%，而盘带宽比内存低 2–3 个量级。做法是全量 KV 存盘 + 内存只留”低秩 K 摘要（只做预测、不参与计算，可激进压缩 σ 高达 32）+ 分组关键 KV 预测（对齐磁盘块读）+ 滚动/复用缓冲”。Jetson Orin 上 vs 最强基线提速 1.8×（NVMe）/4.1×（eMMC）。
 
 Phoenix（http://xPU.IO，SC’25 + LMCache PR #4673）：SSD 是 Agent 时代唯一划算的大容量介质（单机 100TB 级），但传统路径”盘→主机内存→显存”两次穿 PCIe + CPU 全程参与——实测 4×NVMe RAID0 裸盘 25GB/s，端到端只剩 10.2GB/s；Codex 回放中 TTFT 1101ms 里加载占 600ms、真正 prefill 只 313ms。Phoenix 基于 Linux 标准 I/O 栈 + ZONE_DEVICE 为显存建 struct page，让 GPU 显存指针成为合法 I/O 地址，直接走 pread/io_uring：8×H20 生产 trace 下，平均 TTFT 是 SSD 中转的 2.2×、纯 DRAM 的 5.6×；TTFT 5s 红线下并发 7（DRAM-only）→13（SSD 中转）→37（Phoenix）。机制收益的本质：加载快于计算后，”KV 加载与前一批推理 overlap”的调度重新生效。
 
-3.7 其他系统一览
-NVIDIA CMX：DPU 做多租户调度 + SSD 大容量，KV 管理从引擎解耦为专用存储栈；
-英特尔 KV Shrink：QAT 硬件加速 + 分层卸载，L1(HBM)→L2(DDR)→L3/L4(SSD/分布式) 四级；
-中科曙光 ParaCache：依托 ParaStor 的四级缓存，”从存数据到存智能”，KV 作为可复用数据资产管理；
-华为 UCM：昇腾 NPU 的 KV 池化，经 KV Connector 对接 Mooncake 等后端，灵衢总线跨节点传输。
-3.8 命中率经济学：Attention Store 的商业闭环
-Attention Store 的价值最终由命中率 × 定价决定，工业界给出了几个反直觉结论：
+## 其他系统一览
+- NVIDIA CMX：DPU 做多租户调度 + SSD 大容量，KV 管理从引擎解耦为专用存储栈；
+- 英特尔 KV Shrink：QAT 硬件加速 + 分层卸载，L1(HBM)→L2(DDR)→L3/L4(SSD/分布式) 四级；
+- 中科曙光 ParaCache：依托 ParaStor 的四级缓存，”从存数据到存智能”，KV 作为可复用数据资产管理；
+- 华为 UCM：昇腾 NPU 的 KV 池化，经 KV Connector 对接 Mooncake 等后端，灵衢总线跨节点传输。
+- EMS 缓存：
 
-命中部分定价仅为未命中的 10%–25%（无问芯穹，服务 GLM/Kimi）。由此推出浴盆模型：TPS_hit 随命中率单调上升，TPS_miss 近似线性下降；命中率 40%→70% 时未命中吞吐再降 20%，而命中部分提升不足 3 倍——中段（”偶然失效区间”）可能命中率越高越亏钱；且存在 20%/40%/70% 奇异点（末尾残块不满 chunk 独立计算）。优化方向：把浴盆变浅、加大 cache 容量逃离盆底、cache-aware 负载均衡。
+## 命中率经济学：Attention Store 的商业闭环
+Attention Store 的价值最终由%%r:命中率 × 定价%%决定，工业界给出了几个反直觉结论：
 
+**命中部分定价仅为未命中的 10%–25%**（无问芯穹，服务 GLM/Kimi）。由此推出浴盆模型：TPS_hit 随命中率单调上升，TPS_miss 近似线性下降；命中率 40%→70% 时未命中吞吐再降 20%，而命中部分提升不足 3 倍——中段（”偶然失效区间”）可能命中率越高越亏钱；且存在 20%/40%/70% 奇异点（末尾残块不满 chunk 独立计算）。优化方向：把浴盆变浅、加大 cache 容量逃离盆底、cache-aware 负载均衡。
 
-图 10：浴盆模型——命中部分吞吐上升、未命中部分吞吐下降，中段”偶然失效区间”可能越命中越亏；20/40/70% 为残块奇异点
+![basin_model](images/basin_model.png)
+
+> 浴盆模型——命中部分吞吐上升、未命中部分吞吐下降，中段”偶然失效区间”可能越命中越亏；20/40/70% 为残块奇异点
+
 命中率天花板由 trace 决定，容量只是入场券（kvcache.ai 模拟器逆向）：Mooncake 真实 trace 的复用天花板（无限容量）仅 59.1%——Belady 最优在 16GiB 就到顶（有效复用工作集极小，仅 ~3.7% 唯一块有未来复用价值），LRU 却要 256GiB 才追平（分不清”将复用”与”死块”）。trace 的复用结构决定上限，模型结构只决定多少 GiB 换多少块。 Agent 负载改变命中率来源：传统对话输入 8K、命中率 50%；Agent 任务输入 64–128K、输出 ≤1K、命中率 90%。但前缀易变字段破坏命中：Agent ID、工作目录、时间戳、工具 schema 每次微变即 miss。TokenPilot（浙大）证明仅把易变字段替换成静态占位符 + 摄入边界确定性整理，就把宏观命中率 38.7%→79.2%、费用降 61–87%——上下文管理与 KV 存储是同一枚硬币的两面。
 
 
