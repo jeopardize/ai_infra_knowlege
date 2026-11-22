@@ -130,6 +130,16 @@ PagedAttention（SOSP 2023）借鉴操作系统虚拟内存分页管理 KV Cache
 
 代价：注意力 kernel 必须感知分页（block table 间接寻址），编程复杂且有 kernel 性能损失
 > 如何理解：
+> ```python
+> // 传统：KV 是连续数组，直接算地址
+> kv_ptr = base_ptr + token_id * head_dim;
+> // PagedAttention 下变成：
+> // 分页：先查 block table，再算块内偏移
+> block_id = token_id / block_size;
+> block_ptr = block_table[block_id];  // ← 间接寻址！
+> offset = (token_id % block_size) * head_dim;
+> kv_ptr = block_ptr + offset;
+> ```
 
 ![pageattention](images/pageattention.png)
 
@@ -211,26 +221,26 @@ KDA（Kimi K3）打破 per-token 假设：K3（2.8T 参数、1M 上下文）的�
 2. 未来信息 > 历史信息：用调度器队列的前瞻而非 LRU 的历史做放置与驱逐，命中率差距是数量级的（86% vs 48–58%）；
 3. 粒度选择：传输粒度要大（聚合到 chunk 才能饱和带宽），管理粒度要细（页/层/会话各取所需）。
 
-3.2 CachedAttention / AttentionStore：会话级 KV 外存的奠基
+## CachedAttention / AttentionStore：会话级 KV 外存的奠基
 CachedAttention（USENIX ATC 2024，NUS/上交/华为云）盯住多轮对话：ShareGPT 中 73% 为多轮，每轮结束后 KV 被丢弃，下一条消息要对全部历史重新 prefill——历史 token 占比超 99%，重复计算占 TTFT 的 99%。
 
 架构：Controller（调度器）+ AttentionStore Manager（DRAM+SSD 两级）+ GPU 集群（含专用读写 buffer），Load/Save 走独立 CUDA stream，Fetch/Evict 走独立 IO 线程。四大机制：
+- 逐层预载：算第$i$层时并发预载第$i+1$层；
+- 异步保存：prefill 产生的 KV 逐层与 decode 重叠写回；
+- 调度器感知放置/驱逐（本质创新）：用 job queue 的”未来信息”替代 LRU/FIFO 的历史信息，窗口内即将被访问的 KV 豁免驱逐——命中率 86% vs LRU 58% / FIFO 48%；
+- 位置编码解耦：存不含 RoPE 的 K/V，加载时再嵌入新位置编码，上下文截断不使缓存失效。
 
-逐层预载：算第 
- 层时并发预载第 
- 层；
-异步保存：prefill 产生的 KV 逐层与 decode 重叠写回；
-调度器感知放置/驱逐（本质创新）：用 job queue 的”未来信息”替代 LRU/FIFO 的历史信息，窗口内即将被访问的 KV 豁免驱逐——命中率 86% vs LRU 58% / FIFO 48%；
-位置编码解耦：存不含 RoPE 的 K/V，加载时再嵌入新位置编码，上下文截断不使缓存失效。
-效果：KV 命中率 71–90%，TTFT 降低 61–87%，prefill 吞吐提升 2.6–7.8×，成本最多降 70%（存储开销仅占总成本 9–16.4%）。HBM-only 命中率约 0%，加 10TB SSD 后达 71–90%——跨 DRAM/SSD 分层是命中率的根本来源。局限：单机本地、无跨节点路由（Mooncake 沿此方向工业化）。
 
-3.3 Mooncake：KVCache-Centric 分离架构的生产标杆
+效果：KV 命中率 71–90%，TTFT 降低 61–87%，prefill 吞吐提升 2.6–7.8×，成本最多降 70%（存储开销仅占总成本 9–16.4%）。HBM-only 命中率约 0%，加 10TB SSD 后达 71–90%——跨 DRAM/SSD 分层是命中率的根本来源。%%r:局限：单机本地、无跨节点路由（Mooncake 沿此方向工业化）。%%
+
+## Mooncake：KVCache-Centric 分离架构的生产标杆
 Mooncake（FAST 2025 最佳论文，月之暗面+清华）是 Kimi 的生产推理平台，核心洞察：调度请求本质上是调度 KVCache 在哪里、谁来算、传给谁。架构四件套：
-
-Prefill 池（max cache reuse，s.t. TTFT SLO）+ Decode 池（max throughput，s.t. TBT SLO）；
+- Prefill 池（max cache reuse，s.t. TTFT SLO）+ Decode 池（max throughput，s.t. TBT SLO）；
 全局分布式 KVCache 池：把 GPU 服务器闲置的 CPU/DRAM/SSD/NIC 池化，通过 GPUDirect RDMA 传输（Messenger 组件）；
-Conductor 全局调度器：以前缀命中长度、实例负载、传输时间、SLO 统一权衡路由——TTFT = 排队 + prefill（+ 传输）；SLO 不可达直接 HTTP 429 提前拒绝；
-热点迁移：请求路由到非最佳实例时顺带拉取 KV 复制热块（trace 显示 >50% 缓存块从未复用、最热块被访问数万次——复制热块收益极高）。
+- Conductor 全局调度器：以前缀命中长度、实例负载、传输时间、SLO 统一权衡路由——TTFT = 排队 + prefill（+ 传输）；SLO 不可达直接 HTTP 429 提前拒绝；
+- 热点迁移：请求路由到非最佳实例时顺带拉取 KV 复制热块（trace 显示 >50% 缓存块从未复用、最热块被访问数万次——复制热块收益极高）。
+
+![Mooncake_kv](images/Mooncake_kv.png)
 
 > Mooncake 四件套——Conductor 全局调度 + Prefill/Decode 分离池 + 分布式 KVCache 池，五步请求工作流
 数据按 512-token 块组织，前缀哈希级联去重；Layer-wise Prefill 让逐层 load/store 与计算重叠，prefill 时间 ≈ max(加载, 计算)。长上下文流水（CPP）把多节点 prefill 流水化。
