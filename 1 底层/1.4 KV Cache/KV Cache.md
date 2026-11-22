@@ -112,24 +112,19 @@ KV Cache 是指大模型推理时，把 Transformer 每一层 Attention 中已�
 
 > 模型中不是每一层都是attention操作啊，query，MLP 中间状态，LayerNorm / Activation 状态
 
-最初，HBM分配是seq到来找到一块连续的空闲空间，这会造成大量的内存碎片。
+最初，HBM分配是seq到来找到一块%%b:连续的空闲空间%%，这会造成大量的内存碎片。
 
-![](images/image-20260416091856559_副本.png)
+![past_hbm_manage](images/past_hbm_manage.png)
+
 
 
 ## PagedAttention --vllm
 
-这意味着：
+PagedAttention（SOSP 2023）借鉴操作系统虚拟内存分页管理 KV Cache，解决传统方案的三大内存浪费：
 
-- ✅ 用 **指针 + offset**
-- ✅ 假设内存是 **一整块连续 buffer**
-- ✅ kernel 内部不做复杂的索引/跳转
-
-👉 一旦变成非连续：
-
-- kernel 要维护 **block index**
-- cache 命中模式被打乱
-- 性能急剧下降
+- 内部碎片：按”最大可能序列长度”预分配连续内存，实际输出远短于上限；
+- 外部碎片：请求长度各异，内存块之间产生无法组合的空隙；
+- 冗余复制：并行采样、beam search 下多条序列共享相同前缀却各存一份。
 
 ```python
 # kv_cache 申请
