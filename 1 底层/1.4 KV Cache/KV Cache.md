@@ -128,6 +128,9 @@ PagedAttention（SOSP 2023）借鉴操作系统虚拟内存分页管理 KV Cache
 
 核心设计：把逻辑连续的 KV Cache 切成固定大小的块（block），通过页表做逻辑到物理的映射，KV Cache 在物理显存中可以非连续存储。调度器每步显式分配/回收块；不同请求共享相同前缀（如 system prompt）时，前缀页指向同一物理块，用引用计数管理生命周期，写入时才触发 Copy-on-Write。显存利用率从 20%–40% 提升到 >90%，同延迟下吞吐提升 2–4×。
 
+代价：注意力 kernel 必须感知分页（block table 间接寻址），编程复杂且有 kernel 性能损失
+> 如何理解：
+
 ![pageattention](images/pageattention.png)
 
 %%r:vLLM V1 的完整链路：%%调度器维护三队列（WAITING → RUNNING → SWAPPED）。显存不足时触发抢占，两种策略——RECOMPUTE（释放全部 KV 块、下次重算）与 SWAP（KV 从 GPU 换出到 CPU、之后换回），这是引擎级 GPU↔CPU 分层存储的实现。执行层的 blocks_to_swap_in/out/copy 在 forward 前完成，其中 blocks_to_copy 正是 prefix cache 命中后共享块的写时复制路径。V1 还集成了 Automatic Prefix Caching（APC）——基于 token 块哈希的前缀复用。
@@ -153,10 +156,12 @@ RadixAttention（2023）的核心目标是跨请求的自动 KV 复用，数据�
 
 %%r:实现细节（sglang mem_cache/，main 分支）——三个设计值得注意：%%
 
-树只存索引、不存张量：TreeNode.value 指向 KV pool 的 slot 索引，与 PagedAllocator（页粒度分配/回收）咬合；命中前缀时 value 就是可直接喂给 attention backend 的物理位置。insert 只登记索引不分配 slot，cache_finished_req 在请求完成时插树并去重释放已被树覆盖的前缀 slot。
-锁沿父链传播：只要某请求持有叶子节点的 lock（lock_ref），整条前缀链都不可淘汰；evict 从增量维护的 evictable_leaves 集合按策略建堆逐个释放，复杂度与淘汰量成正比而非树大小。淘汰策略有 7 种（LRU/LFU/FIFO/MRU/FILO/priority/SLRU），默认 LRU。
-统一锚点贯穿多层存储：TreeNode 同时持有 value（GPU slot 索引）、host_value（CPU slot 索引）、hash_value（每页一个哈希，作外部存储 key）——一棵树天然索引三层存储，是后文 HiCache 的基础。
+1. 树只存索引、不存张量：TreeNode.value 指向 KV pool 的 slot 索引，与 PagedAllocator（页粒度分配/回收）咬合；命中前缀时 value 就是可直接喂给 attention backend 的物理位置。insert 只登记索引不分配 slot，cache_finished_req 在请求完成时插树并去重释放已被树覆盖的前缀 slot。
+2. 锁沿父链传播：只要某请求持有叶子节点的 lock（lock_ref），整条前缀链都不可淘汰；evict 从增量维护的 evictable_leaves 集合按策略建堆逐个释放，复杂度与淘汰量成正比而非树大小。淘汰策略有 7 种（LRU/LFU/FIFO/MRU/FILO/priority/SLRU），默认 LRU。
+3. 统一锚点贯穿多层存储：TreeNode 同时持有 value（GPU slot 索引）、host_value（CPU slot 索引）、hash_value（每页一个哈希，作外部存储 key）——一棵树天然索引三层存储，是后文 HiCache 的基础。
 extra_key（LoRA id / cache salt）进入键空间实现命名空间隔离；树只在 page 边界分裂节点，page 对齐贯穿全栈。
+
+缺点：CPU 侧树操作开销随命中率上升；收益依赖负载的前缀分布，低命中负载反受其累
 
 > [!important]
 > 补充代码
@@ -171,23 +176,28 @@ PagedAttention 把虚拟内存布局从连续变为非连续，代价是注意�
 两条路线的对比本质是：PagedAttention 把分页做进 kernel，vAttention 把分页做进 MMU。后者依赖 CUDA VM API 且物理碎片仅缓解不消除，但思路代表了”OS 虚拟内存思想进一步下沉”。
 
 ## 架构演进对 KV 存储的冲击：MLA 与 KDA
-MLA（DeepSeek）：把多头 K/V 压缩为低秩 latent 向量 
-，只缓存 latent、推理时解压。DeepSeek-V3 的 KV 维度从 GQA 的 2048 降到 576，压缩约 3.6×。代价是 TP 切分困难：每个设备都需加载完整 latent，内存优势被并行度抵消——TPLA（ASPLOS 2026）用 Hadamard/PCA 重参数化使 latent 可沿特征轴切分，免训练加载 MLA checkpoint，32K 上下文加速 1.79×/1.93×。
+MLA（DeepSeek）：把多头 K/V 压缩为低秩 latent 向量c_KV ，只缓存 latent、推理时解压。%%r:DeepSeek-V3 的 KV 维度从 GQA 的 2048 降到 576，压缩约 3.6×%%。==代价是 TP 切分困难：每个设备都需加载完整 latent，内存优势被并行度抵消==
+> 如何解读：
+> 
+TPLA（ASPLOS 2026）用 Hadamard/PCA 重参数化使 latent 可沿特征轴切分，免训练加载 MLA checkpoint，32K 上下文加速 1.79×/1.93×。
 
-KDA（Kimi K3）打破 per-token 假设：K3（2.8T 参数、1M 上下文）的注意力骨架是”三 KDA + 一 MLA”交替（93 层中 69 层 KDA）。KDA 不存逐 token KV，历史递归压缩为固定大小的 Recurrent State（
-，与序列长度无关）+ 卷积窗口，KV Cache 降低约 75%。但这根本改变了缓存性质：
+KDA（Kimi K3）打破 per-token 假设：K3（2.8T 参数、1M 上下文）的注意力骨架是”三 KDA + 一 MLA”交替（93 层中 69 层 KDA）。%%r:KDA 不存逐 token KV%%，历史递归压缩为固定大小的 Recurrent State（$S_t \in \mathbb{R}^{128 \times 128}$与序列长度无关）+ 卷积窗口，KV Cache 降低约 75%。但这根本改变了缓存性质：
 
-递归状态无法任意截断回退——token 级前缀匹配成功 ≠ 状态可恢复，必须在选定前缀边界显式存 checkpoint；
-单个 KDA checkpoint ≈ 0.4 GiB；128 token 间隔下 1M 上下文需 ~3TB，10K 间隔也要 ~40GB——checkpoint 越稀疏，命中后重算的后缀越长；
-MLA KV 与 KDA State 必须在同一前缀边界对齐。
+- 递归状态无法任意截断回退——token 级前缀匹配成功 ≠ 状态可恢复，必须在选定前缀边界显式存 checkpoint；
+- 单个 KDA checkpoint ≈ 0.4 GiB；128 token 间隔下 1M 上下文需 ~3TB，10K 间隔也要 ~40GB——checkpoint 越稀疏，命中后重算的后缀越长；
+- MLA KV 与 KDA State 必须在同一前缀边界对齐。
 
-图 5：Full Attention 的 KV 随序列线性增长、可任意截断复用；KDA 只存固定状态 + 稀疏 checkpoint，命中需从最近 checkpoint 分叉并重算后缀
-SGLang 的解法（MambaRadixCache）：树节点同时持有 value（MLA per-token KV 索引）和 mamba_value（KDA per-prefix 状态 slot），两套独立 LRU/引用计数；节点分裂时 mamba_value = None（状态无子结构可切）。关键机制：track/donate/branching 闭环（递推中定期快照状态 → 零拷贝”过户”给基数树 → 命中时从最深状态节点分叉重算尾巴）、ping-pong track buffer（2 个 track slot 交替写/取，给 donate 2 轮 chunk 余量，是 overlap 调度的前提）、INT8 冷池（per-(head,k-channel) 对称量化，同显存缓存约 4× 前缀状态）。实测 60K 上下文下 KDA 混合 cache 比纯 MLA 省 70%。vLLM 社区（K3 团队贡献）则用三粒度解耦：hash 粒度（前缀匹配探测）× 物理状态块（摊销存储）× 调度对齐粒度，4,096-token 的物理块内部可在任意位置记录命中点直接恢复。TokenSpeed 的 Flat KV 更进一步：一页既可存 1,536 token 的 MLA latent，也可存一个完整 KDA 快照——统一页分配器与地址空间，prefix cache / CoW / PD 传输协议全部复用。
+![kv_arch_boom](images/kv_arch_boom.png)
+> Full Attention 的 KV 随序列线性增长、可任意截断复用；KDA 只存固定状态 + 稀疏 checkpoint，命中需从最近 checkpoint 分叉并重算后缀
+---
+%%r:SGLang 的解法（MambaRadixCache）%%：树节点同时持有 value（MLA per-token KV 索引）和 mamba_value（KDA per-prefix 状态 slot），两套独立 LRU/引用计数；节点分裂时 mamba_value = None（状态无子结构可切）。关键机制：track/donate/branching 闭环（递推中定期快照状态 → 零拷贝”过户”给基数树 → 命中时从最深状态节点分叉重算尾巴）、ping-pong track buffer（2 个 track slot 交替写/取，给 donate 2 轮 chunk 余量，是 overlap 调度的前提）、INT8 冷池（per-(head,k-channel) 对称量化，同显存缓存约 4× 前缀状态）。实测 60K 上下文下 KDA 混合 cache 比纯 MLA 省 70%。vLLM 社区（K3 团队贡献）则用三粒度解耦：hash 粒度（前缀匹配探测）× 物理状态块（摊销存储）× 调度对齐粒度，4,096-token 的物理块内部可在任意位置记录命中点直接恢复。TokenSpeed 的 Flat KV 更进一步：一页既可存 1,536 token 的 MLA latent，也可存一个完整 KDA 快照——统一页分配器与地址空间，prefix cache / CoW / PD 传输协议全部复用。
 
 # Attention Store系统
+单卡 HBM 装不下 KV Cache 时，就需要把它扩展到 CPU DRAM、SSD 和分布式存储——这类系统统称 Attention Store。核心思想是“以存换算”：用更多的存储资源换取更少的计算。
 
 
 # 常用模型kv cache 计算
+## glm53 计算
 
 ## DeepSeek-V4-Pro
 
