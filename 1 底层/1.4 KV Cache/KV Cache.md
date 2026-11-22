@@ -63,18 +63,39 @@ $$
 
 从以上数据可以看出，**KV 缓存内存消耗可能会变得非常大，甚至超过了加载大型序列模型权重所需的内存量。**
 
-%%r:因此，kv cache 有两大关注路径：1. kv cache 量化 2. kv cache管理%%
+如{@fig:HBM_use}所示，是GPU的显存使用情况,模型权重和kv缓存是两个最大的开销：
+![HBM_use](images/HBM_use.png){#fig:HBM_use}
+
+%%r:所以，降低 kv cache 显存占用有以下几个解决方案：
+1. 降低kv cache自身显存占用 —— kv cache量化、分布式kv cache存储、MQA/GQA等结构层面减少KV头数；
+2. 优化系统管理方案，更高效地利用有限显存 —— PagedAttention减少碎片、KV Eviction驱逐不重要token、Prefix Caching复用相同前缀；
+3. 减少需要缓存的token总量 —— 滑动窗口注意力只保留近期token、投机解码减少decode步数。%%
 
 # KV Cache 量化
 
 > [!Note]
 >
-> 目标：解决kv cache每一个token大小的问题。
+> 目标：解决kv cache每一个token大小的问题，减少他在显存中的占用。
 
+将 FP16 / BF16 等高精度的 Key 和 Value 缓存映射为 FP8、INT8、INT4 甚至 INT2 等低精度表示，从而成倍降低显存占用并减少访存带宽压力。
 
-基本思路：将 FP16 / BF16 等高精度的 Key 和 Value 缓存映射为 FP8、INT8、INT4 甚至 INT2 等低精度表示，从而成倍降低显存占用并减少访存带宽压力。
+%%r:量化的核心思路：在可接受精度损失的范围，用更紧凑的数据格式来表示原始数据，也就是将浮点数映射到整数里面%%
 
+## 量化数学原理
 
+```text
+//量化映射，有点类似预测未防止极端数据，会进行一定的缩放
+scale = (max_val-min_val)/(2^bits - 1)
+zero_point = round(-min_val/scale)
+q = clamp(round(x/scale+zero_point),0,2^bits-1)
+
+//反量化
+x' = (q - zero_point)*scale
+
+//scale:比例因子，决定量化精度
+// Zero-point：零点，处理非对称范围
+// Bit-width：位宽，决定熟知范围
+```
 
 #  单机内存管理KV Cache 的管理策略
 
@@ -92,8 +113,7 @@ KV Cache 是指大模型推理时，把 Transformer 每一层 Attention 中已�
 
 ![](images/image-20260416091856559_副本.png)
 
-所以，存不下有以下几个解决方案：
-1. 
+
 
 ## PagedAttention 详解：操作系统思想在显存管理中的应用
 

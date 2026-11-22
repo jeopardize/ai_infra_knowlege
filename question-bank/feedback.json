@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "id": "fb_1795340372594_v6jk5v",
+    "content": "%%r:所以，降低 kv cache 显存占用有以下几个解决方案：\n1. 降低kv cache自身显存占用 —— kv cache量化、分布式kv cache存储、MQA/GQA等结构层面减少KV头数；\n2. 优化系统管理方案，更高效地利用有限显存 —— PagedAttention减少碎片、KV Eviction驱逐不重要token、Prefix Caching复用相同前缀；\n3. 减少需要缓存的token总量 —— 滑动窗口注意力只保留近期token、投机解码减少decode步数。%%  显示无法是红色的字体，而且点击红笔功能时候，markdown编辑区域，文字会向上偏移，我正在编辑地方会从视野内消失",
+    "createdAt": 1795340372594,
+    "status": "open"
+  }
+]
