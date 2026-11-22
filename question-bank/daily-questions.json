@@ -1,6 +1,6 @@
 {
   "date": "2026-11-22",
-  "summary": "## 今日题目\n1. **KV cache 大小怎么算？**\n2. **通信｜传输进行中 decode 节点挂了，请求怎么处理？**\n3. **4机32卡H200训练从FSDP换成HSDP，通信时间会减少多少**\n4. **nccl中的通信源语有哪些？all-reduce参数更新一次参数需要几次通信？**\n5. **如果推理时出现 OOM，你会怎么排查**\n6. **通信｜EP（专家并行）的 AllToAll 和 TP 的 AllReduce，通信量和频率差多少？对网络要求的区别？**\n7. **多GPU通信时NVSHMEM和NVLink的区别**\n8. **为什么要做dynamic 调度 \\\\\n固定batchsizze的问题在哪里\\\\\nmax token/token budget 怎么确定\\\\\ndynamic batch 和 packing 是什么关系？只做Dynamic Batch，不做packing行不行;\\\\\n只用token数作为Dynamic Batch的预算，真的能做到阉割计算负载均衡么？\\\\\npadding为什么会造成算力浪费\\\\\n负载均衡到底均衡什么\\\\**\n9. **MTP是否属于并行预测Token\\\\ \n如何在保持自回归生成情况下提升效率**\n10. **cuda的global memory和shared memory访存分别需要注意什么？**\n\n## 笔记缺失点总结\n1. **训练并行体系笔记严重缺失**：去补 `2 框架/1.2 训练框架/` 下 FSDP、HSDP、TP、PP、ZeRO 的原理与通信量对比，对应今日第3、6题。\n2. **NCCL 集合通信内容太薄弱**：去补 `1 底层/1.2 集群通信/nccl.md` 中通信原语、AllReduce 实现步骤、EP/TP 通信模式差异，对应今日第4、6、7题。\n3. **Dynamic Batch 与负载均衡笔记不足**：去补 `2 框架/1.1 推理架构/优化方向/5 并行负载不均/` 和 `6 请求编排与配比不当/` 下的调度策略、padding 浪费分析，对应今日第8题。\n4. **CUDA 访存与硬件基础缺失**：去补 `1 底层/1.0 GPU&异构计算/CUDA.md` 中 global/shared memory 访存模式与优化要点，对应今日第10题。",
+  "summary": "## 今日题目\n1. **KV cache 大小怎么算？**\n2. **通信｜传输进行中 decode 节点挂了，请求怎么处理？**\n3. **4机32卡H200训练从FSDP换成HSDP，通信时间会减少多少**\n4. **nccl中的通信源语有哪些？all-reduce参数更新一次参数需要几次通信？**\n5. **如果推理时出现 OOM，你会怎么排查**\n6. **通信｜EP（专家并行）的 AllToAll 和 TP 的 AllReduce，通信量和频率差多少？对网络要求的区别？**\n7. **多GPU通信时NVSHMEM和NVLink的区别**\n8. **为什么要做dynamic 调度 \\\\\n固定batchsizze的问题在哪里\\\\\nmax token/token budget 怎么确定\\\\\ndynamic batch 和 packing 是什么关系？只做Dynamic Batch，不做packing行不行;\\\\\n只用token数作为Dynamic Batch的预算，真的能做到阉割计算负载均衡么？\\\\\npadding为什么会造成算力浪费\\\\\n负载均衡到底均衡什么\\\\**\n9. **MTP是否属于并行预测Token\\\\ \n如何在保持自回归生成情况下提升效率**\n10. **cuda的global memory和shared memory访存分别需要注意什么？**\n\n---\n\n## 笔记缺失点总结\n1. **训练并行体系严重缺失**：FSDP/HSDP、TP、PP、ZeRO 等训练并行策略无系统笔记，无法支撑「FSDP 换 HSDP 通信收益估算」类题目，优先补 `2 框架/1.2 训练框架/` 下的**数据并行、张量并行、流水线并行、混合并行（HSDP 等）**专题。\n2. **NCCL 通信深度不足**：现有 `1 底层/1.2 集群通信/nccl.md` 未覆盖通信原语分类、通信次数推导、AllToAll 与 AllReduce 量化对比，补 **NCCL 集合通信原语、通信量计算、不同并行场景通信模式对比**。\n3. **推理调度与负载均衡薄弱**：Dynamic Batch、Packing、Token Budget、负载均衡本质无系统整理，补 `2 框架/1.1 推理架构/优化方向/5 并行负载不均/` 和 `6 请求编排与配比不当/` 下的**动态调度算法、Packing 机制、负载均衡度量方法**。\n4. **CUDA 访存优化不系统**：现有 `1 底层/1.0 GPU&异构计算/CUDA.md` 未深入 Global/Shared Memory 访存优化要点，补 **CUDA 内存层次、Global Memory 合并访存、Shared Memory  bank 冲突**相关笔记。",
   "questions": [
     {
       "id": "kb-kv-basic",
@@ -156,5 +156,5 @@
       "file": "1 底层/1.0 GPU&异构计算/question.md"
     }
   ],
-  "sentAt": 1795305652467
+  "sentAt": 1795305688670
 }
