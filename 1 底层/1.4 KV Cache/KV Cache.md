@@ -5,8 +5,8 @@ KV Cache 是 llm serving中相当关键的一部分
 > [!important] \
 > 需要理解：\
 > 什么是kv cache \
-> 然后如何管理kv cache \
 > kv cache 优化
+> 然后如何管理kv cache 
 
 # 什么是KV Cache & 瓶颈分析
 
@@ -63,9 +63,22 @@ $$
 
 从以上数据可以看出，**KV 缓存内存消耗可能会变得非常大，甚至超过了加载大型序列模型权重所需的内存量。**
 
+%%r:因此，kv cache 有两大关注路径：1. kv cache 量化 2. kv cache管理%%
+
+# KV Cache 量化
+
+> [!Note]
+>
+> 目标：解决kv cache每一个token大小的问题。
+
+
+基本思路：将 FP16 / BF16 等高精度的 Key 和 Value 缓存映射为 FP8、INT8、INT4 甚至 INT2 等低精度表示，从而成倍降低显存占用并减少访存带宽压力。
+
+
+
 #  单机内存管理KV Cache 的管理策略
 
-> [!IMPORTANT]
+> [!Note]
 >
 > 目标：解决“存哪里、怎么存、存不下怎么办”的问题。
 
@@ -78,6 +91,9 @@ KV Cache 是指大模型推理时，把 Transformer 每一层 Attention 中已�
 最初，HBM分配是seq到来找到一块连续的空闲空间，这会造成大量的内存碎片。
 
 ![](images/image-20260416091856559_副本.png)
+
+所以，存不下有以下几个解决方案：
+1. 
 
 ## PagedAttention 详解：操作系统思想在显存管理中的应用
 
