@@ -126,6 +126,14 @@ PagedAttention（SOSP 2023）借鉴操作系统虚拟内存分页管理 KV Cache
 - 外部碎片：请求长度各异，内存块之间产生无法组合的空隙；
 - 冗余复制：并行采样、beam search 下多条序列共享相同前缀却各存一份。
 
+核心设计：把逻辑连续的 KV Cache 切成固定大小的块（block），通过页表做逻辑到物理的映射，KV Cache 在物理显存中可以非连续存储。调度器每步显式分配/回收块；不同请求共享相同前缀（如 system prompt）时，前缀页指向同一物理块，用引用计数管理生命周期，写入时才触发 Copy-on-Write。显存利用率从 20%–40% 提升到 >90%，同延迟下吞吐提升 2–4×。
+
+![pageattention](images/pageattention.png)
+
+%%r:vLLM V1 的完整链路：%%调度器维护三队列（WAITING → RUNNING → SWAPPED）。显存不足时触发抢占，两种策略——RECOMPUTE（释放全部 KV 块、下次重算）与 SWAP（KV 从 GPU 换出到 CPU、之后换回），这是引擎级 GPU↔CPU 分层存储的实现。执行层的 blocks_to_swap_in/out/copy 在 forward 前完成，其中 blocks_to_copy 正是 prefix cache 命中后共享块的写时复制路径。V1 还集成了 Automatic Prefix Caching（APC）——基于 token 块哈希的前缀复用。
+
+> [!important]
+> 补充代码
 ```python
 # kv_cache 申请
 kv_cache = malloc(seq_len * layer * head * dim * sizeof(dtype));
@@ -135,6 +143,13 @@ for i in (0, seq_len):
 ```
 
 ## RadixAttention --SGlang
+
+RadixAttention（2023）的核心目标是跨请求的自动 KV 复用，数据结构是基数树（Radix Tree）：
+
+树的每条边标记一段 token 序列，节点持有 KV pool 的 slot 索引；
+新请求到来时做最长前缀匹配：命中部分直接复用其 KV，未命中部分追加为新节点；
+LRU 等策略淘汰旧节点释放显存。
+
 
 ##vAttention
 
