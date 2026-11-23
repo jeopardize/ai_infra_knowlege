@@ -115,7 +115,8 @@ $$
 
 Q2:w_q建议是扩维还是降维
 
-# MHA（Multihead Attention）
+# Dense Attention
+## MHA（Multihead Attention）
 
 也就是同时需要去计算多个注意力机制，去学习不同维度的信息，最后拼接在一块。
 
@@ -169,16 +170,7 @@ class MHA:
 根据以上的学习，我们发现，在这个过程之中，会产生巨大的scores的中间量，所以需要存储中间量很复杂、
 
 
-
-
-
-
-
-# ROPE
-
-
-
-# MLA
+## MLA
 
 MLA 相较于 MHA 选择使用 hidden states 一个低秩纬度矩阵进行计算，MLA结构如下：
 
@@ -214,7 +206,7 @@ $$
 
 
 
-# MQA
+## MQA
 
 MQA就是来减少缓存所需要的量的。
 
@@ -226,7 +218,7 @@ MQA就是来减少缓存所需要的量的。
 
 
 
-# GQA
+## GQA
 
 GQA里， Q还是按原来MHA/MQA的做法不变。只使用一套共享的 K、V不是效果不好吗，那就还是多弄几套。但是不要太多，数量还是比 的头数少一些。这样相当于把 的多个头给分了group，同一个group内的 共享同一套 K、V，不同group的 所用的 K、V不同。
 
@@ -236,7 +228,7 @@ GQA里， Q还是按原来MHA/MQA的做法不变。只使用一套共享的 K、
 
 
 
-# DSA
+# Sparse Attention（DSA）
 
 
 
@@ -336,4 +328,4 @@ v3Hopper架构优化，利用H100上的TMA特性，可以一边算，一边把�
 
 
 
-# 
+# 编码技术
