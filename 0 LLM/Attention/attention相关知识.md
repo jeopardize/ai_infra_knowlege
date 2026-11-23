@@ -6,7 +6,7 @@
 
 Attention是根据输入的矩阵$input \in R^{L \times n}$去计算一个不同位置之间的关系得到一个，形成一个不同位置之间的关系的矩阵Attentionscore $\in R^{L \times L}$,  最后与当前 value 相乘得到加权后的上下文表示。
 $$
-Attention = softmax(\frac{Q*K^T}{\sqrt{d_key}})V , Attention \in R^{L \times n}, d_{k} 是 Key 的维度
+Attention = softmax(\frac{Q*K^T}{\sqrt{d_k}})V , Attention \in R^{L \times n}, d_{k} 是 Key 的维度
 $$
 
 ```python
