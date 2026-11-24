@@ -230,6 +230,8 @@ GQA里， Q还是按原来MHA/MQA的做法不变。只使用一套共享的 K、
 
 # Sparse Attention（DSA）
 
+# Recurrent/Linear Attention（KDA，DeltaNet，Mamba）
+
 
 
 
