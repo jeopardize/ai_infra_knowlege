@@ -180,11 +180,11 @@ class MHA:
 
 MQA就是来减少缓存所需要的量的。
 
-其中，只将Q进行切分，类似MHA中所做的，K和V直接从d_model降低到d_head d_head == d_model // h
+%%r:其中，只将Q进行切分，类似MHA中所做的，K和V直接从d_model降低到d_head = d_model // h%%
 
 这会导致什么：1. Q和K乘积矩阵从$R \in [b, seq_l, h, h]$ 降低到 $R \in [b, seq_l, h, 1]$ 
 
-但是,  简单来说，就是MHA中，每个注意力头的 、 是不一样的，而MQA这里，每个注意力头的 、 是一样的，值是共享的。而其他步骤都和MHA一样。
+但是，简单来说，就是MHA中，每个注意力头的score是不一样的，而MQA这里，每个注意力头的score是一样的，值是共享的。而其他步骤都和MHA一样。
 
 ```python
 class MQA:
