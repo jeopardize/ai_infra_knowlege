@@ -142,33 +142,150 @@ $$
 
 ```python
 class MHA:
-  def __init__(self, input_dim, d_model, h):
-    self.d_k = d_model // h
-    self.w_q = nn.Linear(input_dim, d_model)
-    self.w_k = nn.Linear(input_dim, d_model)
-    self.w_v = nn.Linear(input_dim, d_model)
-    
-  def calMHA(self, input):
-    Q = self.w_q(input)
-    K = self.w_k(input)
-    V = self.w_v(input)#[batch_size, seq_len, h*d_k]
-    # 拆分多头: reshape 为 [batch_size, seq_len, h, d_k]，然后转置
-    # 目标: [batch_size, h, seq_len, d_k]
-    Q = Q.view(batch_size, -1, self.h, self.d_k).transpose(1, 2)# [batch_size, seq_len, h, d_k]
-    K = K.view(batch_size, -1, self.h, self.d_k).transpose(1, 2)
-    V = V.view(batch_size, -1, self.h, self.d_k).transpose(1, 2)
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)# [batch_size, seq_len, h, h]
-    scores = F.softmax(scores, dim = -1)
-    context = torch.matmul(attention_weights, V)  # [batch_size, h, seq_len_q, d_k]
-    context = context.transpose(1, 2).contiguous()  # 先转置成 [batch_size, seq_len_q, h, d_k]
-    context = context.view(batch_size, -1, self.d_model)  # 合并最后两维
-    return context
-    
-    
+    def __init__(self, input_dim, d_model, h):
+        self.d_model = d_model
+        self.h = h
+        self.d_k = d_model // h
+        self.w_q = nn.Linear(input_dim, d_model, bias=False)
+        self.w_k = nn.Linear(input_dim, d_model, bias=False)
+        self.w_v = nn.Linear(input_dim, d_model, bias=False)
+        self.w_o = nn.Linear(d_model, d_model, bias=False)
+
+    def calMHA(self, input):
+        batch_size = input.size(0)
+
+        Q = self.w_q(input)  # [B, L, h*d_k]
+        K = self.w_k(input)
+        V = self.w_v(input)
+
+        # [B, h, L, d_k]
+        Q = Q.view(batch_size, -1, self.h, self.d_k).transpose(1, 2)
+        K = K.view(batch_size, -1, self.h, self.d_k).transpose(1, 2)
+        V = V.view(batch_size, -1, self.h, self.d_k).transpose(1, 2)
+
+        scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
+        attn = F.softmax(scores, dim=-1)
+
+        context = torch.matmul(attn, V)  # [B, h, L, d_k]
+        context = context.transpose(1, 2).contiguous()  # [B, L, h, d_k]
+        context = context.view(batch_size, -1, self.d_model)  # [B, L, d_model]
+        context = self.w_o(context)
+        return context
+
 ```
 
 根据以上的学习，我们发现，在这个过程之中，会产生巨大的scores的中间量，所以需要存储中间量很复杂、
 
+## MQA
+
+MQA就是来减少缓存所需要的量的。
+
+其中，只将Q进行切分，类似MHA中所做的，K和V直接从d_model降低到d_head d_head == d_model // h
+
+这会导致什么：1. Q和K乘积矩阵从$R \in [b, seq_l, h, h]$ 降低到 $R \in [b, seq_l, h, 1]$ 
+
+但是,  简单来说，就是MHA中，每个注意力头的 、 是不一样的，而MQA这里，每个注意力头的 、 是一样的，值是共享的。而其他步骤都和MHA一样。
+
+```python
+class MQA:
+    """
+    MQA: 所有 h 个 Q 头共享 1 组 K、V
+    K, V 只有 1 个头 → w_k, w_v 输出维度 = d_k（不是 d_model）
+    """
+    def __init__(self, input_dim, d_model, h):
+        self.d_model = d_model
+        self.h = h
+        self.d_k = d_model // h
+        # Q: h 个头
+        self.w_q = nn.Linear(input_dim, d_model, bias=False)
+        # K, V: 只有 1 个头（维度 = d_k）
+        self.w_k = nn.Linear(input_dim, self.d_k, bias=False)
+        self.w_v = nn.Linear(input_dim, self.d_k, bias=False)
+        self.w_o = nn.Linear(d_model, d_model, bias=False)
+
+    def calMQA(self, input):
+        batch_size = input.size(0)
+        seq_len = input.size(1)
+
+        Q = self.w_q(input)  # [B, L, h*d_k]
+        K = self.w_k(input)  # [B, L, d_k]
+        V = self.w_v(input)  # [B, L, d_k]
+
+        # Q: [B, h, L, d_k]
+        Q = Q.view(batch_size, seq_len, self.h, self.d_k).transpose(1, 2)
+
+        # K, V: [B, L, d_k] → [B, 1, L, d_k] → 扩展为 [B, h, L, d_k]
+        K = K.unsqueeze(1).expand(batch_size, self.h, seq_len, self.d_k)
+        V = V.unsqueeze(1).expand(batch_size, self.h, seq_len, self.d_k)
+
+        scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
+        attn = F.softmax(scores, dim=-1)
+
+        context = torch.matmul(attn, V)  # [B, h, L, d_k]
+        context = context.transpose(1, 2).contiguous()  # [B, L, h, d_k]
+        context = context.view(batch_size, seq_len, self.d_model)  # [B, L, d_model]
+        context = self.w_o(context)
+        return context
+
+```
+
+
+## GQA
+
+GQA里， Q还是按原来MHA/MQA的做法不变。只使用一套共享的 K、V不是效果不好吗，那就还是多弄几套。但是不要太多，数量还是比 的头数少一些。这样相当于把 的多个头给分了group，同一个group内的 共享同一套 K、V，不同group的 所用的 K、V不同。
+
+![img](images/v2-152555107b3ad3ad0b4f97b0972eb123_1440w.jpg)
+
+```python
+class GQA:
+    """
+    GQA: h 个 Q 头分成 g 组，每组共享 1 组 K、V
+    g = n_groups, 每组有 h//g 个 Q 头
+    """
+    def __init__(self, input_dim, d_model, h, n_groups):
+        assert h % n_groups == 0
+        self.d_model = d_model
+        self.h = h
+        self.g = n_groups
+        self.d_k = d_model // h
+        self.heads_per_group = h // n_groups
+
+        # Q: h 个头
+        self.w_q = nn.Linear(input_dim, d_model, bias=False)
+        # K, V: g 个组（每组 1 个头）
+        self.w_k = nn.Linear(input_dim, n_groups * self.d_k, bias=False)
+        self.w_v = nn.Linear(input_dim, n_groups * self.d_k, bias=False)
+        self.w_o = nn.Linear(d_model, d_model, bias=False)
+
+    def calGQA(self, input):
+        batch_size = input.size(0)
+        seq_len = input.size(1)
+
+        Q = self.w_q(input)  # [B, L, h*d_k]
+        K = self.w_k(input)  # [B, L, g*d_k]
+        V = self.w_v(input)  # [B, L, g*d_k]
+
+        # Q: [B, h, L, d_k]
+        Q = Q.view(batch_size, seq_len, self.h, self.d_k).transpose(1, 2)
+
+        # K, V: [B, g, L, d_k]
+        K = K.view(batch_size, seq_len, self.g, self.d_k).transpose(1, 2)
+        V = V.view(batch_size, seq_len, self.g, self.d_k).transpose(1, 2)
+
+        # 扩展: [B, g, L, d_k] → [B, h, L, d_k]
+        K = K.repeat_interleave(self.heads_per_group, dim=1)
+        V = V.repeat_interleave(self.heads_per_group, dim=1)
+
+        scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
+        attn = F.softmax(scores, dim=-1)
+
+        context = torch.matmul(attn, V)  # [B, h, L, d_k]
+        context = context.transpose(1, 2).contiguous()  # [B, L, h, d_k]
+        context = context.view(batch_size, seq_len, self.d_model)  # [B, L, d_model]
+        context = self.w_o(context)
+        return context
+
+```
 
 ## MLA
 
@@ -292,24 +409,6 @@ class MLA(nn.Module):
 ```
 
 
-
-## MQA
-
-MQA就是来减少缓存所需要的量的。
-
-其中，只将Q进行切分，类似MHA中所做的，K和V直接从d_model降低到d_head d_head == d_model // h
-
-这会导致什么：1. Q和K乘积矩阵从$R \in [b, seq_l, h, h]$ 降低到 $R \in [b, seq_l, h, 1]$ 
-
-但是,  简单来说，就是MHA中，每个注意力头的 、 是不一样的，而MQA这里，每个注意力头的 、 是一样的，值是共享的。而其他步骤都和MHA一样。
-
-
-
-## GQA
-
-GQA里， Q还是按原来MHA/MQA的做法不变。只使用一套共享的 K、V不是效果不好吗，那就还是多弄几套。但是不要太多，数量还是比 的头数少一些。这样相当于把 的多个头给分了group，同一个group内的 共享同一套 K、V，不同group的 所用的 K、V不同。
-
-![img](images/v2-152555107b3ad3ad0b4f97b0972eb123_1440w.jpg)
 
 
 
