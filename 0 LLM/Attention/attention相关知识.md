@@ -204,6 +204,93 @@ $$
 
 之后的注意力计算使用$q_t^C,k_t^C,v_t^C$
 
+```python
+class MLA(nn.Module):
+    """
+    Multi-head Latent Attention (MLA)
+    
+    Args:
+        d_model: 模型维度
+        n_heads: 注意力头数
+        d_latent_kv: Key/Value 的潜在压缩维度 (通常 d_latent_kv << d_head * n_heads)
+        d_head: 每个头的维度 (默认 d_model // n_heads)
+        dropout: dropout 概率
+    """
+    def __init__(self, d_model, n_heads, d_latent_kv, d_head=None, dropout=0.1):
+        super().__init__()
+        self.d_model = d_model
+        self.n_heads = n_heads
+        self.d_head = d_head if d_head else d_model // n_heads
+        self.d_latent_kv = d_latent_kv
+        self.scale = 1.0 / math.sqrt(self.d_head)
+
+        # ---- 压缩：将输入投影到潜在空间 ----
+        # 将完整的 KV 维度压缩到 d_latent_kv
+        self.kv_down_proj = nn.Linear(d_model, d_latent_kv * 2, bias=False)
+        
+        # ---- 上投影：从潜在空间恢复 ----
+        self.k_up_proj = nn.Linear(d_latent_kv, n_heads * self.d_head, bias=False)
+        self.v_up_proj = nn.Linear(d_latent_kv, n_heads * self.d_head, bias=False)
+
+        # ---- Query 不做压缩（或也可压缩）----
+        self.q_proj = nn.Linear(d_model, n_heads * self.d_head, bias=False)
+
+        # ---- 输出投影 ----
+        self.out_proj = nn.Linear(n_heads * self.d_head, d_model, bias=False)
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, x, mask=None):
+        """
+        Args:
+            x: (batch_size, seq_len, d_model)
+            mask: (batch_size, seq_len, seq_len) 或 causal mask
+        Returns:
+            output: (batch_size, seq_len, d_model)
+        """
+        batch_size, seq_len, _ = x.shape
+
+        # ---- Query ----
+        q = self.q_proj(x)  # (B, L, n_heads * d_head)
+        q = q.view(batch_size, seq_len, self.n_heads, self.d_head).transpose(1, 2)
+        # q: (B, n_heads, L, d_head)
+
+        # ---- KV 压缩到潜在空间 ----
+        kv_compressed = self.kv_down_proj(x)  # (B, L, 2 * d_latent_kv)
+        k_latent, v_latent = kv_compressed.chunk(2, dim=-1)
+        # k_latent, v_latent: (B, L, d_latent_kv)
+
+        # ---- 从潜在空间上投影恢复 K, V ----
+        k = self.k_up_proj(k_latent)  # (B, L, n_heads * d_head)
+        v = self.v_up_proj(v_latent)  # (B, L, n_heads * d_head)
+        
+        k = k.view(batch_size, seq_len, self.n_heads, self.d_head).transpose(1, 2)
+        v = v.view(batch_size, seq_len, self.n_heads, self.d_head).transpose(1, 2)
+        # k, v: (B, n_heads, L, d_head)
+
+        # ---- 注意力计算 ----
+        # attn_scores: (B, n_heads, L, L)
+        attn_scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
+
+        if mask is not None:
+            attn_scores = attn_scores.masked_fill(mask == 0, float('-inf'))
+
+        attn_weights = torch.softmax(attn_scores, dim=-1)
+        attn_weights = self.dropout(attn_weights)
+
+        # output: (B, n_heads, L, d_head)
+        output = torch.matmul(attn_weights, v)
+
+        # ---- 拼接多头 ----
+        output = output.transpose(1, 2).contiguous()  # (B, L, n_heads, d_head)
+        output = output.view(batch_size, seq_len, self.n_heads * self.d_head)
+
+        # ---- 输出投影 ----
+        output = self.out_proj(output)
+        
+        return output
+
+```
+
 
 
 ## MQA
