@@ -139,6 +139,7 @@ $$
 目前可以看到的趋势是，模型越大（也就是hidden size越大），头数的增多越能带来平均效果上的收益（或者说允许注意力头增大而不影响子空间的学习能力）。
 
 正如上述所描述一样，所以这里的d_k = d_model/h
+>https://zhuanlan.zhihu.com/p/1959636888123049941
 
 ```python
 class MHA:
@@ -415,6 +416,136 @@ class MLA(nn.Module):
 
 
 # Sparse Attention（DSA）
+
+```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+
+class Indexer(torch.nn.Module):
+    def __init__(self, args: ModelArgs):
+        super().__init__()
+        self.dim: int = args.dim
+        self.n_heads: int = args.index_n_heads
+        self.n_local_heads = args.index_n_heads // world_size
+        self.head_dim: int = args.index_head_dim
+        self.rope_head_dim: int = args.qk_rope_head_dim
+        self.index_topk: int = args.index_topk
+        self.q_lora_rank: int = args.q_lora_rank
+        self.wq_b = Linear(self.q_lora_rank, self.n_heads * self.head_dim)
+        self.wk = Linear(self.dim, self.head_dim)
+        self.k_norm = LayerNorm(self.head_dim)
+        self.weights_proj = Linear(self.dim, self.n_heads, dtype=torch.get_default_dtype())
+        self.softmax_scale = self.head_dim ** -0.5
+        self.scale_fmt = args.scale_fmt
+
+        self.register_buffer("k_cache", torch.zeros(args.max_batch_size, args.max_seq_len, self.head_dim, dtype=torch.float8_e4m3fn), persistent=False)
+        self.register_buffer("k_scale_cache", torch.zeros(args.max_batch_size, args.max_seq_len, self.head_dim // block_size, dtype=torch.float32), persistent=False)
+
+
+    def forward(self, x: torch.Tensor, qr: torch.Tensor, start_pos: int, freqs_cis: torch.Tensor, mask: Optional[torch.Tensor]):
+        bsz, seqlen, _ = x.size()
+        end_pos = start_pos + seqlen
+        q = self.wq_b(qr)
+        q = rearrange(q, 'b s (h d) -> b s h d', d=self.head_dim)
+        q_pe, q_nope = torch.split(q, [self.rope_head_dim, self.head_dim - self.rope_head_dim], dim=-1)
+        q_pe = apply_rotary_emb(q_pe, freqs_cis)
+        q = torch.cat([q_pe, q_nope], dim=-1)
+        k = self.wk(x)
+        k = self.k_norm(k)
+        k_pe, k_nope = torch.split(k, [self.rope_head_dim, self.head_dim - self.rope_head_dim], dim=-1)
+        k_pe = apply_rotary_emb(k_pe.unsqueeze(2), freqs_cis).squeeze(2)
+        k = torch.cat([k_pe, k_nope], dim=-1)
+        q = rotate_activation(q)
+        k = rotate_activation(k)
+        q_fp8, q_scale = act_quant(q, block_size, self.scale_fmt)
+        k_fp8, k_scale = act_quant(k, block_size, self.scale_fmt)
+        self.k_cache[:bsz, start_pos:end_pos] = k_fp8
+        self.k_scale_cache[:bsz, start_pos:end_pos] = k_scale
+        weights = self.weights_proj(x) * self.n_heads ** -0.5
+        weights = weights.unsqueeze(-1) * q_scale * self.softmax_scale
+        index_score = fp8_index(q_fp8.contiguous(), weights, self.k_cache[:bsz, :end_pos].contiguous(), self.k_scale_cache[:bsz, :end_pos].contiguous())
+        if mask is not None:
+            index_score += mask
+        topk_indices = index_score.topk(min(self.index_topk, end_pos), dim=-1)[1]
+        topk_indices_ = topk_indices.clone()
+        dist.broadcast(topk_indices_, src=0)
+        assert torch.all(topk_indices == topk_indices_), f"{topk_indices=} {topk_indices_=}"
+        return topk_indices
+
+
+class DSAAttention(nn.Module):
+    """带 DSA 稀疏选择的多头自注意力（教学版，dense mask 模拟稀疏）"""
+    def __init__(
+        self,
+        d_model: int,
+        num_heads: int,
+        topk: int = 2048,
+        index_n_heads: int = 4,
+        index_head_dim: int = 64,
+        dropout: float = 0.0,
+    ):
+        super().__init__()
+        assert d_model % num_heads == 0
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.head_dim = d_model // num_heads
+        self.topk = topk
+
+        self.Wq = nn.Linear(d_model, d_model, bias=False)
+        self.Wk = nn.Linear(d_model, d_model, bias=False)
+        self.Wv = nn.Linear(d_model, d_model, bias=False)
+        self.Wo = nn.Linear(d_model, d_model, bias=False)
+        self.dropout = nn.Dropout(dropout)
+
+        self.indexer = Indexer(d_model, index_n_heads, index_head_dim)
+
+    def forward(self, x: torch.Tensor):
+        b, T, _ = x.shape
+        q = self.Wq(x)
+        k = self.Wk(x)
+        v = self.Wv(x)
+
+        # 拆多头：b, heads, seq, dim
+        q = q.view(b, T, self.num_heads, self.head_dim).transpose(1, 2)
+        k = k.view(b, T, self.num_heads, self.head_dim).transpose(1, 2)
+        v = v.view(b, T, self.num_heads, self.head_dim).transpose(1, 2)
+
+        # 因果 mask：未来位置屏蔽
+        pos_q = torch.arange(T, device=x.device)
+        pos_k = torch.arange(T, device=x.device)
+        causal_bool = pos_q.unsqueeze(-1) < pos_k.unsqueeze(0)
+        causal_mask = torch.zeros(T, T, device=x.device, dtype=x.dtype)
+        causal_mask.masked_fill_(causal_bool, float("-inf"))
+
+        # DSA 选出 top-k token 下标
+        topk_indices = self.indexer(x, x, self.topk, causal_mask=causal_mask)
+
+        # 构造稀疏 mask：只保留选中位置
+        sparse_mask = torch.full((b, T, T), float("-inf"), device=x.device, dtype=x.dtype)
+        sparse_mask.scatter_(-1, topk_indices, 0.0)
+        combined_mask = causal_mask.unsqueeze(0) + sparse_mask
+
+        # 注意力打分
+        attn_score = q @ k.transpose(-2, -1)
+        attn_score = attn_score + combined_mask.unsqueeze(1)
+        attn_weight = torch.softmax(attn_score / (self.head_dim ** 0.5), dim=-1)
+        attn_weight = self.dropout(attn_weight)
+
+        out = attn_weight @ v
+        out = out.transpose(1, 2).contiguous().view(b, T, self.d_model)
+        return self.Wo(out)
+
+
+if __name__ == "__main__":
+    dsa_attn = DSAAttention(d_model=512, num_heads=8, topk=128)
+    x = torch.randn(2, 256, 512)
+    y = dsa_attn(x)
+    print("input shape:", x.shape)
+    print("output shape:", y.shape)
+
+```
 
 # Recurrent/Linear Attention（KDA，DeltaNet，Mamba）
 
