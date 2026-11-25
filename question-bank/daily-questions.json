@@ -1,6 +1,6 @@
 {
   "date": "2026-11-25",
-  "summary": "## 今日题目\n1. **VLLM中KV Cache过期策略是什么**\n2. **通信｜GPUDirect RDMA 的原理和限制条件是什么？**\n3. **通信｜控制面和数据面为什么必须分离？**\n4. **大模型推理时，“KV 缓存（KV Cache）”是降低计算量、提升响应速度的核心机制。请解释 KV 缓存的存储原理，以及在长序列对话场景（如上下文长度超 4k）中，如何优化 KV 缓存的存储结构以减少内存占用？**\n5. **通信｜为什么 NCCL 不适合做 KV 传输？至少说三点。**\n6. **一条长度10000的序列和是条长度1000的序列，token总数一样，计算量一样么?**\n7. **投机采样的加速比分析公式，MoE模型的投机采样遇到的性能问题**\n8. **MTP和Eagle的区别，MTP head的prefill过程，MTP head的kv cache变化**\n9. **通信｜同节点 PD 能否用 NVLink？K8s 下为什么不行？**\n10. **为什么要做dynamic 调度 \\\\\n固定batchsizze的问题在哪里\\\\\nmax token/token budget 怎么确定\\\\\ndynamic batch 和 packing 是什么关系？只做Dynamic Batch，不做packing行不行;\\\\\n只用token数作为Dynamic Batch的预算，真的能做到阉割计算负载均衡么？\\\\\npadding为什么会造成算力浪费\\\\\n负载均衡到底均衡什么\\\\**\n\n---\n\n## 笔记缺失点总结\n1. **补推理调度类笔记**：dynamic batch / continuous batching / packing / 负载均衡相关主题完全未覆盖，今日第10题涉及的核心概念无对应笔记，需在`2 框架/1.1 推理架构/优化方向/6 请求编排与配比不当/`下补充动态调度与负载均衡专题。\n2. **补投机解码进阶笔记**：现有仅基础投机解码文档，MTP、Eagle、MoE投机采样等进阶内容缺失，今日7、8题无对应笔记，需在`2 框架/1.1 推理架构/优化方向/1 自回归串行延迟高/decode/`下补充MTP、Eagle及MoE投机采样内容。\n3. **补KV Cache进阶优化笔记**：现有KV Cache笔记仅覆盖基础内容，vLLM过期策略、长序列存储优化、PagedAttention等未覆盖，今日1、4题对应知识点薄弱，需在`1 底层/1.4 KV Cache/`和`VLLM/KV Cache管理.md`中补充过期策略与长序列优化方案。\n4. **补通信场景类笔记**：GPUDirect RDMA、NCCL适用边界、控制面/数据面分离、K8s下NVLink限制等通信场景知识缺失，今日2、3、5、9题无对应笔记，需在`1 底层/1.2 集群通信/`下补充GPUDirect RDMA、NCCL局限性及K8s网络相关内容。",
+  "summary": "## 今日题目\n1. **VLLM中KV Cache过期策略是什么**\n2. **通信｜GPUDirect RDMA 的原理和限制条件是什么？**\n3. **通信｜控制面和数据面为什么必须分离？**\n4. **大模型推理时，“KV 缓存（KV Cache）”是降低计算量、提升响应速度的核心机制。请解释 KV 缓存的存储原理，以及在长序列对话场景（如上下文长度超 4k）中，如何优化 KV 缓存的存储结构以减少内存占用？**\n5. **通信｜为什么 NCCL 不适合做 KV 传输？至少说三点。**\n6. **一条长度10000的序列和是条长度1000的序列，token总数一样，计算量一样么?**\n7. **投机采样的加速比分析公式，MoE模型的投机采样遇到的性能问题**\n8. **MTP和Eagle的区别，MTP head的prefill过程，MTP head的kv cache变化**\n9. **通信｜同节点 PD 能否用 NVLink？K8s 下为什么不行？**\n10. **为什么要做dynamic 调度 \\\n固定batchsizze的问题在哪里\\\nmax token/token budget 怎么确定\\\ndynamic batch 和 packing 是什么关系？只做Dynamic Batch，不做packing行不行;\\\n只用token数作为Dynamic Batch的预算，真的能做到阉割计算负载均衡么？\\\npadding为什么会造成算力浪费\\\n负载均衡到底均衡什么\\**\n\n---\n\n## 笔记缺失点总结\n1. **补KV Cache进阶主题笔记**：现有KV Cache笔记仅覆盖基础，PagedAttention、Prefix Caching、长序列KV存储优化（如分页、量化、稀疏化）均未覆盖，对应今日第1、4题直接缺内容，去补`1 底层/1.4 KV Cache/`下的PagedAttention、长序列优化子主题。\n2. **补投机解码（Speculative Decoding）完整笔记**：现有仅存投机解码基础文件，MTP/Eagle变种、加速比公式、MoE适配问题均无记录，对应今日第7、8题完全缺失，去补`2 框架/1.1 推理架构/优化方向/1 自回归串行延迟高/decode/`下的MTP、Eagle、投机采样性能分析内容。\n3. **补连续批处理（Dynamic Batch/Continuous Batching）与负载均衡笔记**：现有Dynamic Batch、packing、token budget、负载均衡相关内容零散不成体系，对应今日第10题全链条缺逻辑梳理，去补`2 框架/1.1 推理架构/优化方向/6 请求编排与配比不当/`下的动态调度、packing、负载均衡专题。\n4. **补通信场景化笔记**：现有集群通信笔记偏基础协议，GPUDirect RDMA限制、NCCL不适用于KV传输的原因、K8s下NVLink限制等场景化结论均未整理，对应今日第2、5、9题缺针对性总结，去补`1 底层/1.2 集群通信/`下的RDMA场景、NCCL适用边界、K8s网络限制内容。",
   "questions": [
     {
       "id": "q-1781537383942-i2pf",
@@ -155,5 +155,5 @@
       "file": "2 框架/1.1 推理架构/优化方向/6 请求编排与配比不当/question.md"
     }
   ],
-  "sentAt": 1795564861813
+  "sentAt": 1795564902521
 }
