@@ -417,7 +417,12 @@ class MLA(nn.Module):
 
 # Sparse Attention（DSA）
 
+核心思想：在注意力机制中引入稀疏性，不再让序列中每个唯一与所有位置都计算注意力
+> 如何进行选择呢：1.固定模式，2.基于内容
+
+
 ```python
+## DSA实现
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
